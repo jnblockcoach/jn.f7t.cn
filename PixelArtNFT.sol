@@ -673,17 +673,15 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 /**
  * @title PixelArtNFT (Istanbul兼容版 - 单文件无依赖)
  * @dev 像素工坊专属NFT合约 - 完全免费，无供应限制，支持定稿功能
+ * 简化版：任何人都可以定稿，定稿后只有owner能销毁
  */
 contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
 
-    // 定稿状态映射 - true表示已定稿，普通用户不可销毁
+    // 定稿状态映射 - true表示已定稿
     mapping(uint256 => bool) public finalized;
-    
-    // 定稿操作者白名单（可选，如果需要多人有权定稿）
-    mapping(address => bool) public finalizers;
 
     // 事件：记录铸造信息
     event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI);
@@ -691,10 +689,6 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     event NFTBurned(address indexed from, uint256 indexed tokenId);
     // 记录定稿事件
     event NFTFinalized(uint256 indexed tokenId, address indexed finalizer);
-    // 记录取消定稿事件（仅所有者可用）
-    event NFTUnfinalized(uint256 indexed tokenId, address indexed finalizer);
-    // 记录所有者销毁已定稿NFT的事件（审核用途）
-    event OwnerBurnFinalizedNFT(uint256 indexed tokenId, address indexed owner);
 
     /**
      * @dev 构造函数
@@ -704,38 +698,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     constructor(
         string memory name,
         string memory symbol
-    ) ERC721(name, symbol) Ownable() {
-        // 默认将合约所有者加入finalizers白名单
-        finalizers[_msgSender()] = true;
-    }
-
-    /**
-     * @dev 修改器：检查代币是否已定稿（普通用户）
-     */
-    modifier notFinalized(uint256 tokenId) {
-        require(!finalized[tokenId] || owner() == _msgSender(), 
-                "PixelArtNFT: token is finalized and only owner can modify");
-        _;
-    }
-
-    /**
-     * @dev 修改器：检查调用者是否有定稿权限（所有者或finalizers白名单）
-     */
-    modifier canFinalize() {
-        require(owner() == _msgSender() || finalizers[_msgSender()], 
-                "PixelArtNFT: caller cannot finalize");
-        _;
-    }
-
-    /**
-     * @dev 设置定稿操作者（仅所有者）
-     * @param finalizer 要添加或移除的地址
-     * @param status true=添加，false=移除
-     */
-    function setFinalizer(address finalizer, bool status) public onlyOwner {
-        require(finalizer != address(0), "PixelArtNFT: invalid finalizer address");
-        finalizers[finalizer] = status;
-    }
+    ) ERC721(name, symbol) Ownable() {}
 
     /**
      * @dev 任何人都可以免费铸造NFT
@@ -770,11 +733,12 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * @dev 定稿NFT - 定稿后只有所有者可以销毁（本人或授权定稿者均可）
+     * @dev 定稿NFT - 任何人都可以定稿自己的NFT
      * @param tokenId 要定稿的token ID
      */
-    function finalize(uint256 tokenId) public canFinalize {
+    function finalize(uint256 tokenId) public {
         require(_exists(tokenId), "PixelArtNFT: token does not exist");
+        require(ownerOf(tokenId) == _msgSender(), "PixelArtNFT: only owner can finalize");
         require(!finalized[tokenId], "PixelArtNFT: token already finalized");
         
         finalized[tokenId] = true;
@@ -782,15 +746,16 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * @dev 批量定稿多个NFT
+     * @dev 批量定稿多个NFT - 用户可以批量定稿自己的NFT
      * @param tokenIds 要定稿的token ID数组
      */
-    function finalizeBatch(uint256[] memory tokenIds) public canFinalize {
+    function finalizeBatch(uint256[] memory tokenIds) public {
         require(tokenIds.length > 0, "Empty tokenIds");
         
         for (uint256 i = 0; i < tokenIds.length; i++) {
             uint256 tokenId = tokenIds[i];
             require(_exists(tokenId), "PixelArtNFT: token does not exist");
+            require(ownerOf(tokenId) == _msgSender(), "PixelArtNFT: only owner can finalize");
             require(!finalized[tokenId], "PixelArtNFT: token already finalized");
             
             finalized[tokenId] = true;
@@ -799,19 +764,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * @dev 取消定稿（仅合约所有者可用，用于紧急情况）
-     * @param tokenId 要取消定稿的token ID
-     */
-    function unfinalize(uint256 tokenId) public onlyOwner {
-        require(_exists(tokenId), "PixelArtNFT: token does not exist");
-        require(finalized[tokenId], "PixelArtNFT: token is not finalized");
-        
-        finalized[tokenId] = false;
-        emit NFTUnfinalized(tokenId, _msgSender());
-    }
-
-    /**
-     * @dev 销毁NFT - 普通用户不能销毁已定稿的NFT，但所有者可以
+     * @dev 销毁NFT - 普通用户只能销毁未定稿的NFT，owner可以销毁任何NFT（用于审核）
      * @param tokenId 要销毁的token ID
      */
     function burn(uint256 tokenId) public {
@@ -823,10 +776,9 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
             "PixelArtNFT: caller is not owner nor approved nor contract owner"
         );
         
-        // 定稿检查：如果是已定稿的NFT，只有所有者可以销毁
+        // 定稿检查：如果是已定稿的NFT，只有所有者可以销毁（审核用途）
         if (finalized[tokenId]) {
-            require(owner() == _msgSender(), "PixelArtNFT: token is finalized and only owner can burn");
-            emit OwnerBurnFinalizedNFT(tokenId, _msgSender());
+            require(owner() == _msgSender(), "PixelArtNFT: token is finalized and only owner can burn for review");
         }
         
         _burn(tokenId);
@@ -834,7 +786,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
     }
 
     /**
-     * @dev 批量销毁多个NFT - 普通用户不能销毁已定稿的NFT，但所有者可以
+     * @dev 批量销毁多个NFT
      * @param tokenIds 要销毁的token ID数组
      */
     function burnBatch(uint256[] memory tokenIds) public {
@@ -852,8 +804,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
             
             // 定稿检查：如果是已定稿的NFT，只有所有者可以销毁
             if (finalized[tokenId]) {
-                require(owner() == _msgSender(), "PixelArtNFT: token is finalized and only owner can burn");
-                emit OwnerBurnFinalizedNFT(tokenId, _msgSender());
+                require(owner() == _msgSender(), "PixelArtNFT: token is finalized and only owner can burn for review");
             }
             
             _burn(tokenId);
