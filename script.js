@@ -1,7 +1,7 @@
-// script.js
+// ========== script.js ==========
 (function(){
-    // --- 像素画配置 ---
-    let rows = 16, cols = 16;
+    // --- 像素画配置 (固定24x24) ---
+    const rows = 24, cols = 24;  // 固定大小
     const PIXEL_SIZE = 20;
     let currentColor = { r:255, g:0, b:0 };
     let mode = 'draw';
@@ -13,43 +13,64 @@
     let historyIndex = -1;
     const MAX_HISTORY = 40;
 
+    // 定稿标志 (上链后设为true，隐藏销毁按钮)
+    let isFinalized = false;
+
+    // 获取快照
     function getSnapshot() {
         return pixels.map(row => row.map(c => ({r:c.r, g:c.g, b:c.b})));
     }
+    
+    // 推入历史记录
     function pushHistory() {
         if (historyIndex < historyStack.length-1) historyStack = historyStack.slice(0, historyIndex+1);
         historyStack.push(getSnapshot());
         if (historyStack.length > MAX_HISTORY) historyStack.shift();
         historyIndex = historyStack.length-1;
     }
+    
+    // 撤销
     function undo() {
-        if (historyIndex > 0) { historyIndex--; pixels = historyStack[historyIndex].map(r=>r.map(c=>({...c}))); refreshCanvas(); }
+        if (historyIndex > 0) { 
+            historyIndex--; 
+            pixels = historyStack[historyIndex].map(r=>r.map(c=>({...c}))); 
+            refreshCanvas(); 
+        }
     }
+    
+    // 重做
     function redo() {
-        if (historyIndex < historyStack.length-1) { historyIndex++; pixels = historyStack[historyIndex].map(r=>r.map(c=>({...c}))); refreshCanvas(); }
+        if (historyIndex < historyStack.length-1) { 
+            historyIndex++; 
+            pixels = historyStack[historyIndex].map(r=>r.map(c=>({...c}))); 
+            refreshCanvas(); 
+        }
     }
+    
+    // 重置历史记录
     function resetHistory(initial) {
         historyStack = [initial.map(r=>r.map(c=>({...c})))];
         historyIndex = 0;
     }
 
+    // 生成白色画布
     function whitePixels(r,c) {
         return Array(r).fill().map(()=>Array(c).fill().map(()=>({r:255,g:255,b:255})));
     }
+    
+    // 初始化像素
     pixels = whitePixels(rows, cols);
     resetHistory(pixels);
 
     // DOM 元素
     const canvas = document.getElementById('pixelCanvas');
     const ctx = canvas.getContext('2d');
-    const rowsInput = document.getElementById('rowsInput');
-    const colsInput = document.getElementById('colsInput');
-    const newCanvasBtn = document.getElementById('newCanvasBtn');
     const drawBtn = document.getElementById('drawBtn');
     const eraseBtn = document.getElementById('eraseBtn');
     const fillBtn = document.getElementById('fillBtn');
     const undoBtn = document.getElementById('undoBtn');
     const redoBtn = document.getElementById('redoBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const colorPickerBtn = document.getElementById('colorPickerBtn');
     const colorRgbLabel = document.getElementById('colorRgbLabel');
     const savePngBtn = document.getElementById('savePngBtn');
@@ -77,6 +98,7 @@
     const refreshNftBtn = document.getElementById('refreshNftBtn');
     const myNftsContainer = document.getElementById('myNftsContainer');
     const nftList = document.getElementById('nftList');
+    const finalizedIndicator = document.getElementById('finalizedIndicator');
 
     // Jouleverse 配置
     const JOULE_CHAIN_ID = 3666;
@@ -114,8 +136,13 @@
             }
         }
     }
-    function refreshCanvas() { drawGrid(); }
+    
+    // 刷新画布
+    function refreshCanvas() { 
+        drawGrid(); 
+    }
 
+    // 设置活动工具
     function setActive(tool) {
         [drawBtn, eraseBtn, fillBtn].forEach(b=>b.classList.remove('btn-active'));
         if(tool==='draw') drawBtn.classList.add('btn-active');
@@ -124,6 +151,7 @@
         mode = tool;
     }
 
+    // 获取像素索引
     function getPixelIndex(e) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = canvas.width / rect.width;
@@ -146,6 +174,7 @@
         return {row, col};
     }
 
+    // 洪水填充
     function floodFill(row, col, target, newC) {
         if (target.r===newC.r && target.g===newC.g && target.b===newC.b) return;
         let q = [{row,col}], visited = new Set();
@@ -161,6 +190,7 @@
         }
     }
 
+    // 应用绘制
     function applyDraw(row, col) {
         if (mode==='draw') pixels[row][col] = {...currentColor};
         else if (mode==='erase') pixels[row][col] = {r:255,g:255,b:255};
@@ -169,13 +199,18 @@
     }
 
     let dirty = false;
+    
+    // 开始绘制
     function onStart(e) {
         e.preventDefault();
         drawing = true;
         dirty = false;
         let idx = getPixelIndex(e);
         if (!idx) return;
-        if (mode === 'fill') { pushHistory(); applyDraw(idx.row, idx.col); }
+        if (mode === 'fill') { 
+            pushHistory(); 
+            applyDraw(idx.row, idx.col); 
+        }
         else {
             let before = pixels[idx.row][idx.col];
             applyDraw(idx.row, idx.col);
@@ -183,6 +218,8 @@
             if (before.r!==after.r||before.g!==after.g||before.b!==after.b) dirty = true;
         }
     }
+    
+    // 移动绘制
     function onMove(e) {
         if (!drawing || mode==='fill') return;
         e.preventDefault();
@@ -193,6 +230,8 @@
         let after = pixels[idx.row][idx.col];
         if (before.r!==after.r||before.g!==after.g||before.b!==after.b) dirty = true;
     }
+    
+    // 结束绘制
     function onEnd(e) {
         e.preventDefault();
         if (drawing && dirty && mode!=='fill') pushHistory();
@@ -200,6 +239,7 @@
         dirty = false;
     }
 
+    // 画布事件监听
     canvas.addEventListener('mousedown', onStart);
     canvas.addEventListener('mousemove', onMove);
     canvas.addEventListener('mouseup', onEnd);
@@ -209,10 +249,33 @@
     canvas.addEventListener('touchend', onEnd);
     canvas.addEventListener('touchcancel', onEnd);
 
+    // 工具按钮事件
     drawBtn.addEventListener('click', ()=>setActive('draw'));
     eraseBtn.addEventListener('click', ()=>setActive('erase'));
     fillBtn.addEventListener('click', ()=>setActive('fill'));
 
+    // 撤销/重做
+    undoBtn.addEventListener('click', undo);
+    redoBtn.addEventListener('click', redo);
+    
+    // 清空画布
+    clearBtn.addEventListener('click', () => {
+        if (confirm('确定要清空画布吗？所有像素将变为白色。')) {
+            pushHistory(); // 保存当前状态到历史记录
+            
+            // 将所有像素设置为白色
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    pixels[i][j] = { r: 255, g: 255, b: 255 };
+                }
+            }
+            
+            refreshCanvas();
+            mintStatus.innerText = '✅ 画布已清空';
+        }
+    });
+
+    // 颜色选择
     colorPickerBtn.addEventListener('click', ()=>{
         let input = document.createElement('input');
         input.type = 'color';
@@ -229,30 +292,28 @@
         input.click();
     });
 
-    newCanvasBtn.addEventListener('click', ()=>{
-        let r = Math.min(128, Math.max(1, parseInt(rowsInput.value)||16));
-        let c = Math.min(128, Math.max(1, parseInt(colsInput.value)||16));
-        rows = r; cols = c;
-        rowsInput.value = rows; colsInput.value = cols;
-        pixels = whitePixels(rows, cols);
-        resetHistory(pixels);
-        refreshCanvas();
-    });
-
-    undoBtn.addEventListener('click', undo);
-    redoBtn.addEventListener('click', redo);
+    // 键盘快捷键
     window.addEventListener('keydown', (e)=>{
         if (e.ctrlKey || e.metaKey) {
             if (e.key === 'z') { e.preventDefault(); undo(); }
             if (e.key === 'y') { e.preventDefault(); redo(); }
+            if (e.key === 'Delete' && e.shiftKey) {
+                e.preventDefault();
+                clearBtn.click();
+            }
         }
     });
 
+    // 保存图片
     function saveAs(format) {
         let off = document.createElement('canvas');
         off.width = cols; off.height = rows;
         let octx = off.getContext('2d');
-        for(let i=0;i<rows;i++) for(let j=0;j<cols;j++) { let p=pixels[i][j]; octx.fillStyle=`rgb(${p.r},${p.g},${p.b})`; octx.fillRect(j,i,1,1); }
+        for(let i=0;i<rows;i++) for(let j=0;j<cols;j++) { 
+            let p=pixels[i][j]; 
+            octx.fillStyle=`rgb(${p.r},${p.g},${p.b})`; 
+            octx.fillRect(j,i,1,1); 
+        }
         let mime = 'image/png', ext='png';
         if(format==='jpg') { mime='image/jpeg'; ext='jpg'; }
         else if(format==='bmp') { mime='image/bmp'; ext='bmp'; }
@@ -264,16 +325,22 @@
             URL.revokeObjectURL(url);
         }, mime);
     }
+    
     savePngBtn.addEventListener('click', ()=>saveAs('png'));
     saveJpgBtn.addEventListener('click', ()=>saveAs('jpg'));
     saveBmpBtn.addEventListener('click', ()=>saveAs('bmp'));
     saveIcoBtn.addEventListener('click', ()=>saveAs('ico'));
 
+    // 转换Base64
     convertBtn.addEventListener('click', ()=>{
         let off = document.createElement('canvas');
         off.width = cols; off.height = rows;
         let octx = off.getContext('2d');
-        for(let i=0;i<rows;i++) for(let j=0;j<cols;j++) { let p=pixels[i][j]; octx.fillStyle=`rgb(${p.r},${p.g},${p.b})`; octx.fillRect(j,i,1,1); }
+        for(let i=0;i<rows;i++) for(let j=0;j<cols;j++) { 
+            let p=pixels[i][j]; 
+            octx.fillStyle=`rgb(${p.r},${p.g},${p.b})`; 
+            octx.fillRect(j,i,1,1); 
+        }
         off.toBlob(blob=>{
             let reader = new FileReader();
             reader.onloadend = ()=>{
@@ -289,9 +356,15 @@
         }, 'image/png');
     });
 
+    // 复制Base64
     copyBtn.addEventListener('click', ()=>{
-        if (currentBase64) { navigator.clipboard.writeText(currentBase64); }
+        if (currentBase64) { 
+            navigator.clipboard.writeText(currentBase64);
+            mintStatus.innerText = '📋 已复制到剪贴板';
+        }
     });
+    
+    // 保存TXT
     saveTxtBtn.addEventListener('click', ()=>{
         if (!currentBase64) return;
         let blob = new Blob([currentBase64], {type:'text/plain'});
@@ -301,6 +374,7 @@
         URL.revokeObjectURL(url);
     });
 
+    // 加载图片文件
     function loadImageFile(file, callback) {
         if (!file) return;
         let reader = new FileReader();
@@ -312,6 +386,7 @@
         reader.readAsDataURL(file);
     }
 
+    // 导入图片到画布
     function importImageToCanvas(img) {
         let off = document.createElement('canvas');
         off.width = cols; off.height = rows;
@@ -326,8 +401,10 @@
         }
         pushHistory();
         refreshCanvas();
+        mintStatus.innerText = '✅ 图片已导入到画布';
     }
 
+    // 导入图片并转Base64
     function importToBase64Only(img) {
         let off = document.createElement('canvas');
         off.width = cols; off.height = rows;
@@ -340,34 +417,43 @@
         copyBtn.disabled = false;
         saveTxtBtn.disabled = false;
         previewImage.src = base64;
+        mintStatus.innerText = '✅ 图片已转换为Base64';
     }
 
+    // 文件选择事件
     imageFileInput.addEventListener('change', (e) => {
         if (e.target.files.length) {
             fileLabel.innerText = `📁 ${e.target.files[0].name}`;
         } else {
-            fileLabel.innerText = '📁 选择图片 (自动缩小至画布大小)';
+            fileLabel.innerText = '📁 选择图片 (自动缩小至24x24)';
         }
     });
 
+    // 导入到画布按钮
     importToCanvasBtn.addEventListener('click', () => {
-        if (!imageFileInput.files.length) { alert('请先选择图片'); return; }
+        if (!imageFileInput.files.length) { 
+            alert('请先选择图片'); 
+            return; 
+        }
         loadImageFile(imageFileInput.files[0], (img) => {
             importImageToCanvas(img);
         });
     });
 
+    // 直接转Base64按钮
     importToBase64Btn.addEventListener('click', () => {
-        if (!imageFileInput.files.length) { alert('请先选择图片'); return; }
+        if (!imageFileInput.files.length) { 
+            alert('请先选择图片'); 
+            return; 
+        }
         loadImageFile(imageFileInput.files[0], (img) => {
             importToBase64Only(img);
         });
     });
 
-    rowsInput.addEventListener('change', function(){ let v=parseInt(this.value); if(v>128) this.value=128; if(v<1) this.value=1; });
-    colsInput.addEventListener('change', function(){ let v=parseInt(this.value); if(v>128) this.value=128; if(v<1) this.value=1; });
-
     // ========== 区块链交互 ==========
+    
+    // 连接钱包
     async function connectWallet() {
         if (!window.ethereum) {
             alert('请安装MetaMask或兼容钱包');
@@ -391,10 +477,8 @@
             mintNftBtn.disabled = false;
             mintStatus.innerText = '✅ 已连接到Jouleverse';
             
-            // 初始化合约
             contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
             
-            // 加载用户NFT
             loadUserNFTs();
             myNftsContainer.style.display = 'block';
         } catch (err) {
@@ -403,6 +487,17 @@
         }
     }
 
+    // 定稿功能：隐藏所有销毁按钮
+    function applyFinalized() {
+        isFinalized = true;
+        document.querySelectorAll('.nft-burn-btn').forEach(btn => {
+            btn.style.display = 'none';
+        });
+        finalizedIndicator.innerText = '🔒 已定稿 (销毁已隐藏)';
+        mintStatus.innerText = '🔒 已定稿，销毁按钮已隐藏';
+    }
+
+    // 加载用户NFT
     async function loadUserNFTs() {
         if (!contract || !selectedAccount) return;
         try {
@@ -418,8 +513,8 @@
                 const uri = await contract.tokenURI(tokenId);
                 
                 html += `
-                    <div class="nft-item">
-                        <img src="${uri.startsWith('data:') ? uri : 'data:image/svg+xml,%3Csvg...'}" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'">
+                    <div class="nft-item" data-tokenid="${tokenId}">
+                        <img src="${uri.startsWith('data:') ? uri : 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'}" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'">
                         <div class="nft-item-info">
                             <div class="nft-item-id">#${tokenId.toString()}</div>
                             <div style="font-size:11px; color:#666;">${uri.substring(0,30)}...</div>
@@ -430,9 +525,21 @@
             }
             nftList.innerHTML = html;
             
-            // 绑定销毁事件
+            // 如果已经定稿，隐藏销毁按钮
+            if (isFinalized) {
+                document.querySelectorAll('.nft-burn-btn').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+            }
+            
+            // 绑定销毁事件（仅当未定稿时有效）
             document.querySelectorAll('.nft-burn-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (isFinalized) {
+                        alert('此NFT已定稿，无法销毁');
+                        return;
+                    }
                     const tokenId = e.target.dataset.tokenid;
                     if (confirm(`确定要销毁 NFT #${tokenId} 吗？`)) {
                         try {
@@ -453,8 +560,10 @@
         }
     }
 
+    // 连接钱包按钮
     connectWalletBtn.addEventListener('click', connectWallet);
 
+    // 刷新NFT按钮
     refreshNftBtn.addEventListener('click', async () => {
         if (!contract || !selectedAccount) {
             mintStatus.innerText = '请先连接钱包';
@@ -464,6 +573,7 @@
         mintStatus.innerText = '✅ NFT列表已刷新';
     });
 
+    // 铸造NFT按钮
     mintNftBtn.addEventListener('click', async () => {
         if (!contract || !selectedAccount) {
             mintStatus.innerText = '请先连接钱包';
@@ -474,7 +584,6 @@
             return;
         }
         
-        // 确保使用带前缀的格式
         let tokenURI = currentBase64;
         if (!tokenURI.startsWith('data:image')) {
             tokenURI = 'data:image/png;base64,' + tokenURI;
@@ -486,6 +595,20 @@
             mintStatus.innerText = `交易已发送: ${tx.hash.substring(0,10)}... 等待确认`;
             await tx.wait();
             mintStatus.innerText = `✅ 铸造成功! Token ID: ${(await contract.totalSupply()).toString()}`;
+            
+            // 铸造成功后显示定稿按钮
+            if (!document.getElementById('finalizeBtn')) {
+                const finalizeBtn = document.createElement('button');
+                finalizeBtn.id = 'finalizeBtn';
+                finalizeBtn.className = 'btn btn-small';
+                finalizeBtn.innerHTML = '🔒 定稿 (隐藏销毁)';
+                finalizeBtn.style.marginLeft = '10px';
+                finalizeBtn.addEventListener('click', () => {
+                    applyFinalized();
+                });
+                document.querySelector('.nft-row').appendChild(finalizeBtn);
+            }
+            
             await loadUserNFTs();
         } catch (err) {
             console.error(err);
@@ -502,7 +625,12 @@
         let off = document.createElement('canvas');
         off.width = cols; off.height = rows;
         let octx = off.getContext('2d');
-        for(let i=0;i<rows;i++) for(let j=0;j<cols;j++) octx.fillStyle='#ffffff', octx.fillRect(j,i,1,1);
+        for(let i=0;i<rows;i++) {
+            for(let j=0;j<cols;j++) {
+                octx.fillStyle='#ffffff';
+                octx.fillRect(j,i,1,1);
+            }
+        }
         currentBase64 = off.toDataURL('image/png').split(',')[1];
         currentBase64 = withPrefix.checked ? 'data:image/png;base64,' + currentBase64 : currentBase64;
         base64Result.value = currentBase64;

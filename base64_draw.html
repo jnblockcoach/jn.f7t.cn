@@ -1,106 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <title>🎨 像素工坊 · Jouleverse NFT</title>
-    <!-- 分离的 CSS 文件 -->
-    <link rel="stylesheet" href="draw_styles.css">
+    <title>🎨 像素工坊 · Jouleverse NFT (24x24)</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="responsive-container">
-    <!-- 左侧绘图区 -->
-    <div class="draw-panel">
-        <div class="tool-row">
-            <button class="btn btn-active" id="drawBtn" data-mode="draw">🖌️ 画笔</button>
-            <button class="btn" id="eraseBtn" data-mode="erase">🧽 橡皮</button>
-            <button class="btn" id="fillBtn" data-mode="fill">🪣 填充</button>
-            <button class="btn btn-small" id="undoBtn">↩️ 撤销</button>
-            <button class="btn btn-small" id="redoBtn">↪️ 重做</button>
-        </div>
+    <div class="responsive-container">
+        <!-- 左侧绘图区 -->
+        <div class="draw-panel">
+            <div class="tool-row">
+                <button class="btn btn-active" id="drawBtn" data-mode="draw">🖌️ 画笔</button>
+                <button class="btn" id="eraseBtn" data-mode="erase">🧽 橡皮</button>
+                <button class="btn" id="fillBtn" data-mode="fill">🪣 填充</button>
+                <button class="btn btn-small" id="undoBtn">↩️ 撤销</button>
+                <button class="btn btn-small" id="redoBtn">↪️ 重做</button>
+                <button class="btn btn-small" id="clearBtn">🗑️ 清空</button>
+            </div>
 
-        <div class="size-panel">
-            <div class="size-item"><label>行</label><input type="number" id="rowsInput" class="size-input" min="1" max="128" value="16"></div>
-            <div class="size-item"><label>列</label><input type="number" id="colsInput" class="size-input" min="1" max="128" value="16"></div>
-            <button class="btn btn-primary btn-small" id="newCanvasBtn">✨ 新建</button>
-        </div>
+            <div class="size-panel">
+                <div class="size-item"><label>行</label><input type="number" id="rowsInput" class="size-input" min="1" max="24" value="24" readonly disabled></div>
+                <div class="size-item"><label>列</label><input type="number" id="colsInput" class="size-input" min="1" max="24" value="24" readonly disabled></div>
+                <button class="btn btn-primary btn-small" id="newCanvasBtn" disabled style="opacity:0.5; cursor:not-allowed;">✨ 固定24x24</button>
+            </div>
+            <div style="font-size:12px; color:#3c5e9c; margin: -5px 0 10px 15px;">⚡ 画布大小固定为24x24</div>
 
-        <div class="color-area">
-            <div class="color-swatch" id="colorPickerBtn"></div>
-            <span class="color-rgb" id="colorRgbLabel">RGB(255,0,0)</span>
-            <div style="margin-left: auto; display: flex; gap:6px;">
-                <button class="btn btn-small" id="savePngBtn">PNG</button>
-                <button class="btn btn-small" id="saveJpgBtn">JPG</button>
-                <button class="btn btn-small" id="saveBmpBtn">BMP</button>
-                <button class="btn btn-small" id="saveIcoBtn">ICO</button>
+            <div class="color-area">
+                <div class="color-swatch" id="colorPickerBtn"></div>
+                <span class="color-rgb" id="colorRgbLabel">RGB(255,0,0)</span>
+                <div style="margin-left: auto; display: flex; gap:6px;">
+                    <button class="btn btn-small" id="savePngBtn">PNG</button>
+                    <button class="btn btn-small" id="saveJpgBtn">JPG</button>
+                    <button class="btn btn-small" id="saveBmpBtn">BMP</button>
+                    <button class="btn btn-small" id="saveIcoBtn">ICO</button>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="pixelCanvas"></canvas>
+            </div>
+
+            <div class="import-area">
+                <div style="font-weight:600; margin-bottom:12px;">📤 导入图片转像素/Base64</div>
+                <label for="imageFile" class="file-label" id="fileLabel">📁 选择图片 (自动缩小至24x24)</label>
+                <input type="file" id="imageFile" accept="image/*">
+                <div class="flex-row" style="margin-top:12px; justify-content:space-between;">
+                    <button class="btn btn-small" id="importToCanvasBtn">⬇️ 导入到画布</button>
+                    <button class="btn btn-small" id="importToBase64Btn">🔄 直接转Base64</button>
+                </div>
+                <div style="font-size:12px; color:#3c5e9c; margin-top:8px;">* 图片会缩放到24x24</div>
             </div>
         </div>
 
-        <div class="canvas-wrapper">
-            <canvas id="pixelCanvas"></canvas>
-        </div>
-
-        <div class="import-area">
-            <div style="font-weight:600; margin-bottom:12px;">📤 导入图片转像素/Base64</div>
-            <label for="imageFile" class="file-label" id="fileLabel">📁 选择图片 (自动缩小至画布大小)</label>
-            <input type="file" id="imageFile" accept="image/*">
-            <div class="flex-row" style="margin-top:12px; justify-content:space-between;">
-                <button class="btn btn-small" id="importToCanvasBtn">⬇️ 导入到画布</button>
-                <button class="btn btn-small" id="importToBase64Btn">🔄 直接转Base64</button>
+        <!-- 右侧Base64面板 + NFT 铸造 -->
+        <div class="base64-panel">
+            <div class="preview-box">
+                <div style="font-weight:700; margin-bottom:10px;">📷 预览</div>
+                <img id="previewImage" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%25%22%20fill%3D%22%23f3f9ff%22%2F%3E%3Ctext%20x%3D%2220%22%20y%3D%2255%22%20fill%3D%22%23305a8c%22%3E预览%3C%2Ftext%3E%3C%2Fsvg%3E" alt="preview" style="image-rendering: pixelated; max-width:100%; max-height:140px; border-radius:20px; background:#e5efff; padding:100px;">
             </div>
-            <div style="font-size:12px; color:#3c5e9c; margin-top:8px;">* 图片会缩放到当前画布尺寸</div>
+
+            <div class="radio-group">
+                <label><input type="radio" name="base64Format" value="with_prefix" checked> 带前缀</label>
+                <label><input type="radio" name="base64Format" value="pure"> 纯Base64</label>
+            </div>
+
+            <button class="btn btn-primary" id="convertBtn" style="margin-bottom:12px;">🔄 转换当前画作为Base64</button>
+            <textarea id="base64Result" class="base64-text" placeholder="Base64输出..." readonly></textarea>
+
+            <div class="button-group">
+                <button class="btn" id="copyBtn" disabled style="flex:1;">📋 复制</button>
+                <button class="btn" id="saveTxtBtn" disabled style="flex:1;">💾 保存TXT</button>
+            </div>
+
+            <!-- NFT 铸造区域 (已配置Jouleverse合约) -->
+            <div class="nft-mint-area">
+                <div class="nft-title">⛓️ Jouleverse NFT · PixelArt (24x24)</div>
+                <div class="nft-row">
+                    <span class="network-badge">Jouleverse (3666)</span>
+                    <button class="btn btn-small" id="connectWalletBtn">🔌 连接钱包</button>
+                </div>
+                <div id="walletAddressDisplay" class="wallet-info" style="margin-bottom:12px;">未连接</div>
+                
+                <input type="text" id="nftNameInput" class="nft-input" placeholder="NFT 名称 (可选)" value="PixelArt #">
+                
+                <div class="nft-row" style="margin-top:15px; justify-content: space-between;">
+                    <button class="btn btn-primary" id="mintNftBtn" style="flex:2;" disabled>🖼️ 铸造NFT (24x24画作)</button>
+                    <button class="btn btn-small" id="refreshNftBtn" style="flex:1;">🔄 刷新我的NFT</button>
+                </div>
+                
+                <!-- 显示用户拥有的NFT -->
+                <div id="myNftsContainer" class="my-nfts-area" style="display:none;">
+                    <div style="font-weight:600; margin-bottom:10px;">📦 我的NFT <span id="finalizedIndicator" style="color:#b45309; font-size:12px; margin-left:8px;"></span></div>
+                    <div id="nftList"></div>
+                </div>
+                
+                <div id="mintStatus" class="chain-hint">⚡ 24x24 画布固定 · 定稿后隐藏销毁</div>
+            </div>
         </div>
     </div>
-
-    <!-- 右侧Base64面板 + NFT 铸造 -->
-    <div class="base64-panel">
-        <div class="preview-box">
-            <div style="font-weight:700; margin-bottom:10px;">📷 预览</div>
-            <img id="previewImage" src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%25%22%20fill%3D%22%23f3f9ff%22%2F%3E%3Ctext%20x%3D%2220%22%20y%3D%2255%22%20fill%3D%22%23305a8c%22%3E预览%3C%2Ftext%3E%3C%2Fsvg%3E" alt="preview" width="100px" style="image-rendering: pixelated;">
-        </div>
-
-        <div class="radio-group">
-            <label><input type="radio" name="base64Format" value="with_prefix" checked> 带前缀</label>
-            <label><input type="radio" name="base64Format" value="pure"> 纯Base64</label>
-        </div>
-
-        <button class="btn btn-primary" id="convertBtn" style="margin-bottom:12px;">🔄 转换当前画作为Base64</button>
-        <textarea id="base64Result" class="base64-text" placeholder="Base64输出..." readonly></textarea>
-
-        <div class="button-group">
-            <button class="btn" id="copyBtn" disabled style="flex:1;">📋 复制</button>
-            <button class="btn" id="saveTxtBtn" disabled style="flex:1;">💾 保存TXT</button>
-        </div>
-
-        <!-- NFT 铸造区域 (已配置Jouleverse合约) -->
-        <div class="nft-mint-area">
-            <div class="nft-title">⛓️ Jouleverse NFT · PixelArt</div>
-            <div class="nft-row">
-                <span class="network-badge">Jouleverse (3666)</span>
-                <button class="btn btn-small" id="connectWalletBtn">🔌 连接钱包</button>
-            </div>
-            <div id="walletAddressDisplay" class="wallet-info" style="margin-bottom:12px;">未连接</div>
-            
-            <input type="text" id="nftNameInput" class="nft-input" placeholder="NFT 名称 (可选)" value="PixelArt #">
-            
-            <div class="nft-row" style="margin-top:15px; justify-content: space-between;">
-                <button class="btn btn-primary" id="mintNftBtn" style="flex:2;" disabled>🖼️ 铸造NFT (当前画作)</button>
-                <button class="btn btn-small" id="refreshNftBtn" style="flex:1;">🔄 刷新我的NFT</button>
-            </div>
-            
-            <!-- 显示用户拥有的NFT -->
-            <div id="myNftsContainer" class="my-nfts-area" style="display:none;">
-                <div style="font-weight:600; margin-bottom:10px;">📦 我的NFT (可销毁)</div>
-                <div id="nftList"></div>
-            </div>
-            
-            <div id="mintStatus" class="chain-hint">⚡ 准备就绪，合约地址已配置</div>
-        </div>
-    </div>
-</div>
-
-<!-- 分离的 JavaScript 文件 (使用外部 ethers) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-<script src="draw_script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
