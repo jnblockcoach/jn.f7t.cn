@@ -1,4 +1,4 @@
-/* ========== style.css ========== */
+/* ========== styles.css ========== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -173,6 +173,7 @@ body {
     image-rendering: pixelated;
     touch-action: none;
 }
+
 .radio-group {
     background: #f0f6ff;
     border-radius: 40px;
@@ -318,11 +319,15 @@ body {
     font-size: 12px;
     cursor: pointer;
 }
-.finalized-badge {
-    background: #10b981;
+.nft-finalize-btn {
+    background: #f59e0b;
+    border: none;
     color: white;
     padding: 5px 12px;
     border-radius: 30px;
     font-size: 12px;
-    border: none;
+    cursor: pointer;
+}
+.nft-finalize-btn:hover {
+    background: #d97706;
 }

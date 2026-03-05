@@ -13,9 +13,6 @@
     let historyIndex = -1;
     const MAX_HISTORY = 40;
 
-    // 定稿标志 (上链后设为true，隐藏销毁按钮)
-    let isFinalized = false;
-
     // 获取快照
     function getSnapshot() {
         return pixels.map(row => row.map(c => ({r:c.r, g:c.g, b:c.b})));
@@ -81,6 +78,7 @@
     const base64Result = document.getElementById('base64Result');
     const copyBtn = document.getElementById('copyBtn');
     const saveTxtBtn = document.getElementById('saveTxtBtn');
+    const previewImage = document.getElementById('previewImage');
     const withPrefix = document.querySelector('input[value="with_prefix"]');
     const pureBase64 = document.querySelector('input[value="pure"]');
     const imageFileInput = document.getElementById('imageFile');
@@ -103,22 +101,41 @@
     const JOULE_CHAIN_ID = 3666;
     const CONTRACT_ADDRESS = '0x2f74D6f474DC7C81BA863A32B1E5DfF9338ef21a';
     
-    // 合约ABI (包含mint, burn, 以及查询函数)
+    // 合约ABI (完整版，包含所有新功能)
     const CONTRACT_ABI = [
-        "function mint(address to, string memory uri) public returns (uint256)",
-        "function burn(uint256 tokenId) public",
+        // ERC721 标准函数
         "function balanceOf(address owner) view returns (uint256)",
-        "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
-        "function tokenURI(uint256 tokenId) view returns (string)",
         "function ownerOf(uint256 tokenId) view returns (address)",
+        "function tokenURI(uint256 tokenId) view returns (string)",
+        "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
         "function totalSupply() view returns (uint256)",
+        
+        // 核心功能
+        "function mint(address to, string memory uri) returns (uint256)",
+        "function burn(uint256 tokenId)",
+        
+        // 定稿和封存
+        "function finalize(uint256 tokenId)",
+        "function seal(uint256 tokenId)",
+        
+        // 状态查询
+        "function isFinalized(uint256 tokenId) view returns (bool)",
+        "function isSealed(uint256 tokenId) view returns (bool)",
+        
+        // 预览功能（真实内容）
+        "function tokenURIPreview(uint256 tokenId) view returns (string)",
+        
+        // 事件
         "event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI)",
-        "event NFTBurned(address indexed from, uint256 indexed tokenId)"
+        "event NFTBurned(address indexed from, uint256 indexed tokenId)",
+        "event NFTFinalized(uint256 indexed tokenId, address indexed finalizer)",
+        "event NFTSealed(uint256 indexed tokenId, address indexed sealer)"
     ];
 
     let currentBase64 = '';
     let provider, signer, contract;
     let selectedAccount = null;
+    let isOwner = false;  // 当前用户是否为合约owner
 
     // 绘制网格
     function drawGrid() {
@@ -473,10 +490,15 @@
             }
             
             walletAddressDisplay.innerText = `📌 ${selectedAccount.substring(0,10)}...${selectedAccount.substring(38)}`;
-            mintNftBtn.disabled = false;
-            mintStatus.innerText = '✅ 已连接到Jouleverse';
             
             contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+            
+            // 检查当前用户是否为合约owner
+            const ownerAddress = await contract.owner();
+            isOwner = (ownerAddress.toLowerCase() === selectedAccount.toLowerCase());
+            
+            mintNftBtn.disabled = false;
+            mintStatus.innerText = '✅ 已连接到Jouleverse';
             
             loadUserNFTs();
             myNftsContainer.style.display = 'block';
@@ -484,16 +506,6 @@
             console.error(err);
             walletAddressDisplay.innerText = '连接失败';
         }
-    }
-
-    // 定稿功能：隐藏所有销毁按钮
-    function applyFinalized() {
-        isFinalized = true;
-        document.querySelectorAll('.nft-burn-btn').forEach(btn => {
-            btn.style.display = 'none';
-        });
-        finalizedIndicator.innerText = '🔒 已定稿 (销毁已隐藏)';
-        mintStatus.innerText = '🔒 已定稿，销毁按钮已隐藏';
     }
 
     // 加载用户NFT
@@ -509,36 +521,47 @@
             let html = '';
             for (let i = 0; i < balance; i++) {
                 const tokenId = await contract.tokenOfOwnerByIndex(selectedAccount, i);
-                const uri = await contract.tokenURI(tokenId);
+                
+                // 使用tokenURIPreview获取真实内容（预览用）
+                let previewUri;
+                try {
+                    previewUri = await contract.tokenURIPreview(tokenId);
+                } catch {
+                    previewUri = 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E';
+                }
+                
+                // 获取状态
+                const finalized = await contract.isFinalized(tokenId);
+                const sealed = await contract.isSealed(tokenId);
+                
+                let statusBadge = '';
+                if (sealed) {
+                    statusBadge = '<span style="background:#10b981; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-left:5px;">🔒 已封存</span>';
+                } else if (finalized) {
+                    statusBadge = '<span style="background:#f59e0b; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-left:5px;">📝 已定稿</span>';
+                }
                 
                 html += `
                     <div class="nft-item" data-tokenid="${tokenId}">
-                        <img src="${uri.startsWith('data:') ? uri : 'data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'}" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'">
+                        <img src="${previewUri}" onerror="this.src='data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2250%22%20height%3D%2250%22%3E%3Crect%20width%3D%2250%22%20height%3D%2250%22%20fill%3D%22%23cccccc%22%2F%3E%3C%2Fsvg%3E'">
                         <div class="nft-item-info">
-                            <div class="nft-item-id">#${tokenId.toString()}</div>
-                            <div style="font-size:11px; color:#666;">${uri.substring(0,30)}...</div>
+                            <div class="nft-item-id">#${tokenId.toString()} ${statusBadge}</div>
                         </div>
-                        <button class="nft-burn-btn" data-tokenid="${tokenId}">🔥 销毁</button>
+                        ${!sealed ? `
+                            <button class="nft-burn-btn" data-tokenid="${tokenId}">🔥 销毁</button>
+                            ${!finalized ? `
+                                <button class="btn btn-small nft-finalize-btn" data-tokenid="${tokenId}" style="background:#f59e0b; color:white; border:none;">📝 定稿</button>
+                            ` : ''}
+                        ` : ''}
                     </div>
                 `;
             }
             nftList.innerHTML = html;
             
-            // 如果已经定稿，隐藏销毁按钮
-            if (isFinalized) {
-                document.querySelectorAll('.nft-burn-btn').forEach(btn => {
-                    btn.style.display = 'none';
-                });
-            }
-            
-            // 绑定销毁事件（仅当未定稿时有效）
+            // 绑定销毁事件
             document.querySelectorAll('.nft-burn-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if (isFinalized) {
-                        alert('此NFT已定稿，无法销毁');
-                        return;
-                    }
                     const tokenId = e.target.dataset.tokenid;
                     if (confirm(`确定要销毁 NFT #${tokenId} 吗？`)) {
                         try {
@@ -546,13 +569,33 @@
                             mintStatus.innerText = '⏳ 销毁交易发送中...';
                             await tx.wait();
                             mintStatus.innerText = '✅ 销毁成功';
-                            loadUserNFTs(); // 刷新列表
+                            loadUserNFTs();
                         } catch (err) {
                             mintStatus.innerText = `❌ 销毁失败: ${err.message.substring(0,50)}`;
                         }
                     }
                 });
             });
+            
+            // 绑定定稿事件
+            document.querySelectorAll('.nft-finalize-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const tokenId = e.target.dataset.tokenid;
+                    if (confirm(`确定要定稿 NFT #${tokenId} 吗？定稿后只有owner可以销毁。`)) {
+                        try {
+                            const tx = await contract.finalize(tokenId);
+                            mintStatus.innerText = '⏳ 定稿交易发送中...';
+                            await tx.wait();
+                            mintStatus.innerText = '✅ 定稿成功';
+                            loadUserNFTs();
+                        } catch (err) {
+                            mintStatus.innerText = `❌ 定稿失败: ${err.message.substring(0,50)}`;
+                        }
+                    }
+                });
+            });
+            
         } catch (err) {
             console.error(err);
             nftList.innerHTML = '<div style="color:#b91c1c;">加载失败</div>';
@@ -593,20 +636,12 @@
             const tx = await contract.mint(selectedAccount, tokenURI);
             mintStatus.innerText = `交易已发送: ${tx.hash.substring(0,10)}... 等待确认`;
             await tx.wait();
-            mintStatus.innerText = `✅ 铸造成功! Token ID: ${(await contract.totalSupply()).toString()}`;
             
-            // 铸造成功后显示定稿按钮
-            if (!document.getElementById('finalizeBtn')) {
-                const finalizeBtn = document.createElement('button');
-                finalizeBtn.id = 'finalizeBtn';
-                finalizeBtn.className = 'btn btn-small';
-                finalizeBtn.innerHTML = '🔒 定稿 (隐藏销毁)';
-                finalizeBtn.style.marginLeft = '10px';
-                finalizeBtn.addEventListener('click', () => {
-                    applyFinalized();
-                });
-                document.querySelector('.nft-row').appendChild(finalizeBtn);
-            }
+            // 获取新铸造的tokenId
+            const totalSupply = await contract.totalSupply();
+            const tokenId = totalSupply - 1; // 因为ID从0开始，totalSupply是数量
+            
+            mintStatus.innerText = `✅ 铸造成功! Token ID: ${tokenId}`;
             
             await loadUserNFTs();
         } catch (err) {
@@ -630,8 +665,9 @@
                 octx.fillRect(j,i,1,1);
             }
         }
-        currentBase64 = off.toDataURL('image/png').split(',')[1];
-        currentBase64 = withPrefix.checked ? 'data:image/png;base64,' + currentBase64 : currentBase64;
+        const base64 = off.toDataURL('image/png').split(',')[1];
+        currentBase64 = withPrefix.checked ? 'data:image/png;base64,' + base64 : base64;
         base64Result.value = currentBase64;
+        previewImage.src = off.toDataURL('image/png');
     })();
 })();

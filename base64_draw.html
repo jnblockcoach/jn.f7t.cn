@@ -68,7 +68,7 @@
                 <button class="btn" id="saveTxtBtn" disabled style="flex:1;">💾 保存TXT</button>
             </div>
 
-            <!-- NFT 铸造区域 (已配置Jouleverse合约) -->
+            <!-- NFT 铸造区域 -->
             <div class="nft-mint-area">
                 <div class="nft-title">⛓️ Jouleverse NFT · PixelArt (24x24)</div>
                 <div class="nft-row">
@@ -77,20 +77,18 @@
                 </div>
                 <div id="walletAddressDisplay" class="wallet-info" style="margin-bottom:12px;">未连接</div>
                 
-                <input type="text" id="nftNameInput" class="nft-input" placeholder="NFT 名称 (可选)" value="PixelArt #">
-                
                 <div class="nft-row" style="margin-top:15px; justify-content: space-between;">
                     <button class="btn btn-primary" id="mintNftBtn" style="flex:2;" disabled>🖼️ 铸造NFT (24x24画作)</button>
-                    <button class="btn btn-small" id="refreshNftBtn" style="flex:1;">🔄 刷新我的NFT</button>
+                    <button class="btn btn-small" id="refreshNftBtn" style="flex:1;">🔄 刷新</button>
                 </div>
                 
                 <!-- 显示用户拥有的NFT -->
                 <div id="myNftsContainer" class="my-nfts-area" style="display:none;">
-                    <div style="font-weight:600; margin-bottom:10px;">📦 我的NFT <span id="finalizedIndicator" style="color:#b45309; font-size:12px; margin-left:8px;"></span></div>
+                    <div style="font-weight:600; margin-bottom:10px;">📦 我的NFT</div>
                     <div id="nftList"></div>
                 </div>
                 
-                <div id="mintStatus" class="chain-hint">⚡ 24x24 画布固定 · 定稿后隐藏销毁</div>
+                <div id="mintStatus" class="chain-hint">⚡ 准备就绪</div>
             </div>
         </div>
     </div>
