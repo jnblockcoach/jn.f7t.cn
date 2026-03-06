@@ -745,7 +745,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
      */
     function finalize(uint256 tokenId) public {
         require(_exists(tokenId), "Token does not exist");
-        require(ownerOf(tokenId) == _msgSender(), "Only owner can finalize");
+        require(ownerOf(tokenId) == _msgSender(), "Only token owner can finalize");
         require(!isFinalized[tokenId], "Already finalized");
         require(!isSealed[tokenId], "Cannot finalize sealed token");
         
@@ -850,7 +850,7 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
         
         // 已定稿的NFT：只有owner可以销毁
         if (wasFinalized) {
-            require(caller == owner(), "Only owner can burn finalized token");
+            require(caller == owner(), "Only contract owner can burn finalized token");
         } 
         // 未定稿的NFT：持有者（或授权）和owner都可以销毁
         else {
