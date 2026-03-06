@@ -1,4 +1,4 @@
-/* styles.css */
+/* ========== styles.css ========== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -122,7 +122,8 @@ body {
     border: 1px solid #a3bef0;
     border-radius: 40px;
     text-align: center;
-    background: white;
+    background: #f0f5ff;
+    color: #333;
 }
 
 .color-area {
@@ -173,20 +174,6 @@ body {
     touch-action: none;
 }
 
-.preview-box {
-    background: #f2f8ff;
-    border-radius: 28px;
-    padding: 18px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-#previewImage {
-    max-width: 100%;
-    max-height: 140px;
-    border-radius: 20px;
-    background: #e5efff;
-    padding: 5px;
-}
 .radio-group {
     background: #f0f6ff;
     border-radius: 40px;
@@ -331,4 +318,16 @@ body {
     border-radius: 30px;
     font-size: 12px;
     cursor: pointer;
+}
+.nft-finalize-btn {
+    background: #f59e0b;
+    border: none;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.nft-finalize-btn:hover {
+    background: #d97706;
 }

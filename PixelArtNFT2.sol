@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 /**
  * @title PixelArtNFT (Istanbul兼容版 - 单文件无依赖)
- * @dev 像素工坊专属NFT合约 - 完全免费，无供应限制
+ * @dev 像素工坊专属NFT合约 - 完全免费，无供应限制，支持定稿功能
  * 整合了所有OpenZeppelin依赖，无需外部导入
  */
 
@@ -671,118 +671,276 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 // ============ 主合约 ============
 
 /**
- * @title PixelArtNFT (Istanbul兼容版 - 单文件无依赖)
- * @dev 像素工坊专属NFT合约 - 完全免费，无供应限制
+ * @title PixelArtNFT
+ * @dev 像素工坊专属NFT合约 - 总量10000个，支持定稿和永久封存功能
+ * 简化版：只保留核心功能，无批量操作
  */
 contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
-    using Counters for Counters.Counter;
 
-    Counters.Counter private _tokenIdCounter;
+    // 最大供应量
+    uint256 public constant MAX_SUPPLY = 10000;
 
-    // 事件：记录铸造信息
-    event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI);
-    // 事件：记录销毁信息
+    // 可用ID队列（用于回收销毁的ID）
+    uint256[] private _availableIds;
+
+    // 下一个要使用的ID（当可用队列为空时使用）
+    uint256 private _nextId = 0;
+
+    // 定稿状态映射 - true表示已定稿
+    mapping(uint256 => bool) public isFinalized;
+
+    // 永久封存状态映射 - true表示已永久封存
+    mapping(uint256 => bool) public isSealed;
+
+    // 已定稿NFT的ID列表（待审核列表，封存后移除）
+    uint256[] private _finalizedTokenIds;
+
+    // 已定稿NFT的ID到索引的映射（方便快速移除）
+    mapping(uint256 => uint256) private _finalizedIndex;
+
+    // 默认图片Base64（封存前显示的占位图）
+    string constant DEFAULT_IMAGE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAo0lEQVR4AeSSUQqAMAxDh5fS+3/VUyn5CIjYNRnsYyiE6Uzztm5bRFwztbXJTwnYj6NlUtbWBSC4F1L9R20KUIoRUPlSAIpV9SAy4IxolAqGTwIgGGbq/c35rzEFIIT6KlTnUoAaUPmGAO9DxU4zkA1wwgG1AG64BRgJtwAwU72e08PRahGLnPFHAPSdWrNFuKbUmjtwVv30yteUB4zxGVC93wAAAP//RzeAkQAAAAZJREFUAwCevYlZ3o1a6AAAAABJRU5ErkJggg==";
+
+    // 事件
+    event NFTMinted(address indexed to, uint256 indexed tokenId);
     event NFTBurned(address indexed from, uint256 indexed tokenId);
+    event NFTFinalized(uint256 indexed tokenId, address indexed finalizer);
+    event NFTSealed(uint256 indexed tokenId, address indexed sealer);
+
+    constructor() ERC721("PixelArtNFT", "PixelArtNFT") Ownable() {}
 
     /**
-     * @dev 构造函数
-     * @param name NFT名称
-     * @param symbol NFT符号
+     * @dev 获取下一个可用的token ID
      */
-    constructor(
-        string memory name,
-        string memory symbol
-    ) ERC721(name, symbol) Ownable() {
-        // 完全免费的极简NFT合约
+    function _getNextAvailableId() private returns (uint256) {
+        if (_availableIds.length > 0) {
+            uint256 lastIndex = _availableIds.length - 1;
+            uint256 tokenId = _availableIds[lastIndex];
+            _availableIds.pop();
+            return tokenId;
+        } else {
+            require(_nextId < MAX_SUPPLY, "Max supply reached");
+            uint256 tokenId = _nextId;
+            _nextId++;
+            return tokenId;
+        }
     }
 
     /**
-     * @dev 任何人都可以免费铸造NFT
-     * @param to 接收NFT的地址
-     * @param uri tokenURI，通常是Base64编码的图片数据
+     * @dev 铸造NFT - 任何人都可以铸造
      */
     function mint(address to, string memory uri) public returns (uint256) {
-        _tokenIdCounter.increment();
-        uint256 tokenId = _tokenIdCounter.current();
+        require(totalSupply() < MAX_SUPPLY, "Max supply reached");
+        require(bytes(uri).length > 0, "URI cannot be empty");
+
+        uint256 tokenId = _getNextAvailableId();
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
 
-        emit NFTMinted(to, tokenId, uri);
+        emit NFTMinted(to, tokenId);
         return tokenId;
     }
 
     /**
-     * @dev 批量铸造多个NFT
-     * @param to 接收NFT的地址
-     * @param uris tokenURI数组
+     * @dev 定稿NFT - 任何人都可以定稿自己的NFT
      */
-    function mintBatch(address to, string[] memory uris) public {
-        require(uris.length > 0, "Empty uris");
+    function finalize(uint256 tokenId) public {
+        require(_exists(tokenId), "Token does not exist");
+        require(ownerOf(tokenId) == _msgSender(), "Only token owner can finalize");
+        require(!isFinalized[tokenId], "Already finalized");
+        require(!isSealed[tokenId], "Cannot finalize sealed token");
 
-        for (uint256 i = 0; i < uris.length; i++) {
-            _tokenIdCounter.increment();
-            uint256 tokenId = _tokenIdCounter.current();
-            _safeMint(to, tokenId);
-            _setTokenURI(tokenId, uris[i]);
-            emit NFTMinted(to, tokenId, uris[i]);
-        }
+        isFinalized[tokenId] = true;
+
+        // 加入审核列表并记录索引
+        _finalizedIndex[tokenId] = _finalizedTokenIds.length;
+        _finalizedTokenIds.push(tokenId);
+
+        emit NFTFinalized(tokenId, _msgSender());
     }
 
     /**
-     * @dev 销毁NFT（本人或合约所有者均可）
-     * @param tokenId 要销毁的token ID
+     * @dev 永久封存NFT - 仅owner可操作，且只能在定稿后进行
+     * 封存后从待审核列表中移除
      */
-    function burn(uint256 tokenId) public {
+    function seal(uint256 tokenId) public onlyOwner {
+        require(_exists(tokenId), "Token does not exist");
+        require(isFinalized[tokenId], "Can only seal finalized token");
+        require(!isSealed[tokenId], "Already sealed");
+
+        isSealed[tokenId] = true;
+
+        // 从待审核列表中移除
+        _removeFromFinalizedList(tokenId);
+
+        emit NFTSealed(tokenId, _msgSender());
+    }
+
+    /**
+     * @dev 从已定稿列表中移除tokenId（内部函数）
+     */
+    function _removeFromFinalizedList(uint256 tokenId) private {
+        uint256 index = _finalizedIndex[tokenId];
+        uint256 lastIndex = _finalizedTokenIds.length - 1;
+
+        if (index != lastIndex) {
+            uint256 lastTokenId = _finalizedTokenIds[lastIndex];
+            _finalizedTokenIds[index] = lastTokenId;
+            _finalizedIndex[lastTokenId] = index;
+        }
+
+        _finalizedTokenIds.pop();
+        delete _finalizedIndex[tokenId];
+    }
+
+    /**
+     * @dev 预览TokenURI - 返回真实内容（持有者或owner可用）
+     */
+    function tokenURIPreview(uint256 tokenId) public view returns (string memory) {
+        require(_exists(tokenId), "Token does not exist");
+
+        // 只有持有者或owner可以预览
+        address caller = _msgSender();
         address tokenOwner = ownerOf(tokenId);
-        
-        // 检查权限：必须是代币持有者或者是合约所有者
         require(
-            _isApprovedOrOwner(msg.sender, tokenId) || owner() == msg.sender,
-            "PixelArtNFT: caller is not owner nor approved nor contract owner"
+            caller == tokenOwner ||
+            caller == owner() ||
+            isApprovedForAll(tokenOwner, caller),
+            "Not authorized to preview"
         );
-        
+
+        return super.tokenURI(tokenId);
+    }
+
+    /**
+     * @dev TokenURI - 公开查看接口
+     * - 未封存：返回默认图片
+     * - 已封存：返回真实内容
+     */
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        require(_exists(tokenId), "Token does not exist");
+
+        if (isSealed[tokenId]) {
+            return super.tokenURI(tokenId);
+        }
+        return DEFAULT_IMAGE;
+    }
+
+   /**
+    * @dev 销毁NFT - 权限控制：
+    * - 未定稿：持有者（或授权）和owner都可以销毁
+    * - 已定稿：仅owner可以销毁
+    * - 已封存：任何人都不能销毁
+    */
+    function burn(uint256 tokenId) public {
+        require(_exists(tokenId), "Token does not exist");
+
+        // 封存检查：任何人都不能销毁封存的NFT
+        require(!isSealed[tokenId], "Cannot burn sealed token");
+
+        address tokenOwner = ownerOf(tokenId);
+        address caller = _msgSender();
+
+        // 记录销毁前的状态
+        bool wasFinalized = isFinalized[tokenId];
+
+        // 已定稿的NFT：只有owner可以销毁
+        if (wasFinalized) {
+            require(caller == owner(), "Only contract owner can burn finalized token");
+        }
+        // 未定稿的NFT：持有者（或授权）和owner都可以销毁
+        else {
+            bool isAuthorized = (caller == tokenOwner) ||
+                                (getApproved(tokenId) == caller) ||
+                                isApprovedForAll(tokenOwner, caller) ||
+                                (caller == owner());
+            require(isAuthorized, "Not authorized to burn");
+        }
+
+        // 先销毁NFT（这会删除ERC721数据）
         _burn(tokenId);
+
+        // 销毁后清理状态（tokenId仍然存在作为key）
+        if (wasFinalized) {
+            _removeFromFinalizedList(tokenId);  // 从待审核列表中移除
+            delete isFinalized[tokenId];        // 清除定稿状态
+        }
+        // 注意：isSealed[tokenId] 不需要清理，因为封存的NFT根本不允许销毁
+
+        // 将销毁的ID加入可用队列（回收利用）
+        _availableIds.push(tokenId);
+
         emit NFTBurned(tokenOwner, tokenId);
     }
 
+    // ============ owner审核函数 ============
+
     /**
-     * @dev 批量销毁多个NFT（本人或合约所有者均可）
-     * @param tokenIds 要销毁的token ID数组
+     * @dev 获取待审核NFT的总数（仅owner可调用）
      */
-    function burnBatch(uint256[] memory tokenIds) public {
-        require(tokenIds.length > 0, "Empty tokenIds");
-        
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            uint256 tokenId = tokenIds[i];
-            address tokenOwner = ownerOf(tokenId);
-            
-            // 检查权限：必须是代币持有者或者是合约所有者
-            require(
-                _isApprovedOrOwner(msg.sender, tokenId) || owner() == msg.sender,
-                "PixelArtNFT: caller is not owner nor approved nor contract owner"
-            );
-            
-            _burn(tokenId);
-            emit NFTBurned(tokenOwner, tokenId);
-        }
+    function getPendingCount() public view onlyOwner returns (uint256) {
+        return _finalizedTokenIds.length;
     }
 
     /**
-     * @dev 获取当前已铸造数量
+     * @dev 根据索引获取待审核NFT的ID（仅owner可调用）
+     * @param index 索引（从0开始）
+     * @return tokenId 待审核的token ID
+     */
+    function pendingTokenByIndex(uint256 index) public view onlyOwner returns (uint256) {
+        require(index < _finalizedTokenIds.length, "Index out of bounds");
+        return _finalizedTokenIds[index];
+    }
+
+    /**
+     * @dev 获取待审核NFT的详细信息（仅owner可调用）
+     * @param tokenId 要查询的token ID
+     * @return ownerAddress 持有者地址
+     * @return tokenUri 真实内容
+     */
+    function getPendingDetail(uint256 tokenId)
+        public
+        view
+        onlyOwner
+        returns (address ownerAddress, string memory tokenUri)
+    {
+        require(_exists(tokenId), "Token does not exist");
+        require(!isSealed[tokenId], "Token is already sealed");
+        require(isFinalized[tokenId], "Token is not finalized");
+
+        ownerAddress = ownerOf(tokenId);
+        tokenUri = super.tokenURI(tokenId);
+
+        return (ownerAddress, tokenUri);
+    }
+
+    /**
+     * @dev 总供应量
      */
     function totalSupply() public view override(ERC721Enumerable) returns (uint256) {
-        return _tokenIdCounter.current();
+        return super.totalSupply();
     }
 
     /**
-     * @dev 检查调用者是否被授权操作代币
+     * @dev 可用ID数量
      */
-    function _isApprovedOrOwner(address spender, uint256 tokenId) internal view override returns (bool) {
-        address tokenOwner = ownerOf(tokenId);
-        return (spender == tokenOwner || getApproved(tokenId) == spender || isApprovedForAll(tokenOwner, spender));
+    function availableIdsCount() public view returns (uint256) {
+        return _availableIds.length;
     }
 
-    // The following functions are overrides required by Solidity.
+    /**
+     * @dev 下一个新ID
+     */
+    function getNextNewId() public view returns (uint256) {
+        return _nextId;
+    }
+
+    // Solidity要求的重写函数
     function _beforeTokenTransfer(address from, address to, uint256 tokenId, uint256 batchSize)
         internal
         override(ERC721, ERC721Enumerable)
@@ -797,19 +955,10 @@ contract PixelArtNFT is ERC721, ERC721URIStorage, ERC721Enumerable, Ownable {
         super._burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
-    }
-
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721,ERC721Enumerable)
+        override(ERC721, ERC721Enumerable)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

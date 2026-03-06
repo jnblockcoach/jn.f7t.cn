@@ -151,24 +151,6 @@
             border: 1px solid rgba(255,255,255,0.7);
         }
 
-        /* 模拟几个占位button，仅用于展示，实际你可以替换/增加/删除 */
-        .button-grid button:nth-child(1)::after {
-            content: "🖌";
-            font-size: 1.2rem;
-        }
-        .button-grid button:nth-child(2)::after {
-            content: "";
-            font-size: 1.2rem;
-        }
-        .button-grid button:nth-child(3)::after {
-            content: "";
-            font-size: 1.2rem;
-        }
-        .button-grid button:nth-child(4)::after {
-            content: "";
-            font-size: 1.2rem;
-        }
-
         /* 悬停效果增加交互感 */
         .button-grid button:hover {
             background: #f0f7ff;
@@ -318,8 +300,8 @@
             <div class="button-grid">
                 <!-- 预置4个风格统一的button，完全占位，你可以修改文字、删除或加入新的button 
                      注意保留 button 标签即可 -->
-                <button onclick="window.location.href='base64_draw.html'">像素绘图版</button>
-                <button>...</button>
+                <button onclick="window.location.href='base64_draw.html'">像素绘图版1.0</button>
+                <button onclick="window.location.href='base64_draw2.html'">像素绘图版2.0（开发中）</button>
                 <button>...</button>
                 <button>...</button>
                 <!-- 已经预留了四个，但你可以在下面继续增加新的button，样式自动统一 -->
