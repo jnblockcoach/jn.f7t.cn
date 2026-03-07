@@ -1,0 +1,456 @@
+/* owner-style.css - 合约所有者审核面板专属样式 */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at 30% 10%, #1a2639, #0b0f17);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+}
+
+.review-container {
+    max-width: 1400px;
+    width: 100%;
+}
+
+/* 头部区域 */
+.review-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.title-section h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #b3d0ff, #7aa3ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chain-badge {
+    background: #1f2b47;
+    color: #96b9fd;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.3rem 0.9rem;
+    border-radius: 40px;
+    border: 1px solid #3d5270;
+    display: inline-block;
+    margin-left: 1rem;
+}
+
+.connection-area {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 0.7rem 1.5rem;
+    border-radius: 80px;
+    border: 1px solid #2e3f5a;
+}
+
+.btn-connect {
+    background: linear-gradient(145deg, #1e3c8a, #11225a);
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 65, 255, 0.2);
+    border: 1px solid #3162c9;
+}
+
+.btn-connect:hover {
+    background: linear-gradient(145deg, #2349aa, #142c70);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0, 102, 255, 0.4);
+}
+
+.wallet-display {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: #b9d0ff;
+    font-size: 1rem;
+    background: #0d1422;
+    padding: 0.3rem 1rem;
+    border-radius: 30px;
+    border: 1px solid #2e4770;
+}
+
+/* 所有者状态卡片 */
+.owner-status-card {
+    background: rgba(12, 20, 35, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(64, 128, 255, 0.3);
+    border-radius: 32px;
+    padding: 1.8rem 2.5rem;
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px 40px;
+    box-shadow: 0 20px 35px -10px rgba(0, 10, 30, 0.8);
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 8px 18px;
+    flex-wrap: wrap;
+}
+
+.label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #8ba3d9;
+    font-weight: 500;
+}
+
+.value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #eef4ff;
+    background: #0a1424;
+    padding: 0.2rem 1rem;
+    border-radius: 40px;
+    border: 1px solid #2d405f;
+}
+
+.contract-addr {
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid #3f5b86;
+    color: #9bb9ff;
+    padding: 0.2rem 0.8rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 1rem;
+}
+
+.copy-btn:hover {
+    background: #1f3460;
+    color: white;
+}
+
+.identity-badge {
+    padding: 0.3rem 1rem;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    background: #323f5e;
+    color: #bdd0ff;
+}
+
+.highlight {
+    color: #ffd966;
+    background: #332e1f;
+    border-color: #b68b40;
+}
+
+/* 所有者主面板 */
+.owner-panel {
+    background: rgba(10, 17, 30, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 36px;
+    padding: 2rem;
+    border: 1px solid #2c4066;
+}
+
+.panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+}
+
+.panel-header h2 {
+    color: #d6e5ff;
+    font-weight: 500;
+    font-size: 1.7rem;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-secondary {
+    background: #1e2a3f;
+    color: #bbd2ff;
+    border: 1px solid #3d5680;
+    padding: 0.6rem 1.4rem;
+    border-radius: 40px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.btn-secondary:hover {
+    background: #263959;
+    color: white;
+    border-color: #5c7fc7;
+}
+
+/* NFT 网格 */
+.nft-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+/* NFT 卡片 */
+.nft-card {
+    background: rgba(18, 26, 42, 0.9);
+    border: 1px solid #31486e;
+    border-radius: 28px;
+    padding: 1.3rem;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    box-shadow: 0 12px 25px -15px #00000099;
+}
+
+.nft-card:hover {
+    border-color: #5f85d9;
+    transform: translateY(-4px);
+    background: #121f37;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.token-id {
+    font-weight: 700;
+    font-size: 1.3rem;
+    background: #000c1f;
+    padding: 0.2rem 1rem;
+    border-radius: 40px;
+    border: 1px solid #3865b0;
+    color: #c8ddff;
+}
+
+.preview-box {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    background: #1b253b;
+    overflow: hidden;
+    border: 2px solid #4460a3;
+}
+
+.preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.token-uri-preview {
+    font-size: 0.75rem;
+    color: #99b5f0;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: #030b19;
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+}
+
+.owner-address {
+    font-size: 0.8rem;
+    background: #1e2940;
+    padding: 0.3rem 0.9rem;
+    border-radius: 40px;
+    color: #b6ceff;
+    display: inline-block;
+}
+
+.status-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.8rem;
+    border-radius: 50px;
+    text-transform: uppercase;
+}
+
+.badge-finalized {
+    background: #f59e0b20;
+    color: #fbbf24;
+    border: 1px solid #f59e0b;
+}
+
+.badge-sealed {
+    background: #10b98120;
+    color: #6ee7b7;
+    border: 1px solid #10b981;
+}
+
+.badge-destroyed {
+    background: #991b1b40;
+    color: #fca5a5;
+    border: 1px solid #b91c1c;
+}
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    flex: 1;
+    background: #28344e;
+    border: none;
+    color: white;
+    padding: 0.6rem 0;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.15s;
+    border: 1px solid transparent;
+}
+
+.btn-action.danger {
+    background: #601f2f;
+    color: #ffc6c6;
+}
+
+.btn-action.danger:hover {
+    background: #8a2a3f;
+    color: white;
+    border-color: #f87171;
+}
+
+.btn-action.warning {
+    background: #7a5d26;
+    color: #ffe3a3;
+}
+
+.btn-action.warning:hover {
+    background: #9f7c35;
+    color: white;
+    border-color: #fbbf24;
+}
+
+.btn-action:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+/* 访问拒绝 */
+.access-denied {
+    background: #281e32;
+    border: 2px solid #ab5c5c;
+    border-radius: 48px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    color: #f0c0c0;
+    margin-top: 40px;
+}
+
+.denied-icon {
+    font-size: 5rem;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.access-denied h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.small {
+    font-size: 0.9rem;
+    color: #9b8bb0;
+    margin-top: 1rem;
+}
+
+/* 全局状态/加载 */
+.global-status {
+    margin-top: 30px;
+    text-align: center;
+    color: #88a9f0;
+    font-weight: 500;
+}
+
+.loading-spinner {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 50px;
+    color: #9cb2ec;
+}
+
+/* 分页 */
+.pagination-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.page-btn {
+    background: #1d2a42;
+    border: 1px solid #3c5583;
+    color: white;
+    padding: 0.4rem 1.8rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+    background: #2e4070;
+}
+
+.page-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.page-info {
+    color: #c5d6ff;
+    font-weight: 500;
+}
+
+/* 小工具 */
+.hidden {
+    display: none !important;
+}
