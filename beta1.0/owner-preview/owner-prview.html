@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 像素工坊 · 合约所有者审核面板</title>
+    <!-- 引入专属样式 -->
+    <link rel="stylesheet" href="owner-style.css">
+    <!-- ethers.js 依赖 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="review-container">
+        <!-- 头部区域：标题 + 连接状态 -->
+        <div class="review-header">
+            <div class="title-section">
+                <h1>🔏 <span class="gradient-text">PixelArtNFT</span> 所有者控制台</h1>
+                <div class="chain-badge">Jouleverse (3666)</div>
+            </div>
+            <div class="connection-area">
+                <button class="btn-connect" id="connectWalletBtn">🔌 连接钱包</button>
+                <div class="wallet-display" id="walletAddressDisplay">未连接</div>
+            </div>
+        </div>
+
+        <!-- 所有者验证状态 + 合约信息 -->
+        <div class="owner-status-card" id="ownerStatusCard">
+            <div class="status-row">
+                <span class="label">合约地址</span>
+                <span class="value contract-addr" id="contractAddressDisplay">0x2f74...f21a</span>
+                <button class="copy-btn" id="copyContractBtn" title="复制合约地址">📋</button>
+            </div>
+            <div class="status-row">
+                <span class="label">合约所有者</span>
+                <span class="value" id="contractOwnerDisplay">—</span>
+            </div>
+            <div class="status-row">
+                <span class="label">你的身份</span>
+                <span class="value" id="yourIdentityDisplay">未验证</span>
+                <span class="identity-badge" id="identityBadge"></span>
+            </div>
+            <div class="status-row">
+                <span class="label">待审核NFT</span>
+                <span class="value highlight" id="pendingCountDisplay">0</span>
+                <span class="label">已封存/总量</span>
+                <span class="value" id="supplyInfo">0 / 0</span>
+            </div>
+        </div>
+
+        <!-- 控制台主面板：仅当 owner 可见，否则显示遮挡提示 -->
+        <div class="owner-panel" id="ownerPanel" style="display: none;">
+            <div class="panel-header">
+                <h2>📋 已定稿 NFT 审核队列</h2>
+                <div class="panel-actions">
+                    <button class="btn-secondary" id="refreshListBtn">🔄 刷新列表</button>
+                    <button class="btn-secondary" id="toggleSealedBtn" title="显示/隐藏已封存">👁️ 隐藏封存</button>
+                </div>
+            </div>
+
+            <!-- NFT 列表容器 (动态渲染) -->
+            <div class="nft-grid" id="nftGrid">
+                <!-- 这里会由 JavaScript 动态生成卡片 -->
+                <div class="loading-spinner">加载中...</div>
+            </div>
+
+            <!-- 分页 / 加载更多 (简单) -->
+            <div class="pagination-bar" id="paginationBar" style="display: none;">
+                <button class="page-btn" id="prevPageBtn">← 上一页</button>
+                <span class="page-info" id="pageInfo">第 1 页</span>
+                <button class="page-btn" id="nextPageBtn">下一页 →</button>
+            </div>
+        </div>
+
+        <!-- 非所有者遮罩 (当已连接但非owner时显示) -->
+        <div class="access-denied" id="accessDenied" style="display: none;">
+            <div class="denied-icon">⛔</div>
+            <h2>访问受限</h2>
+            <p>当前钱包地址不是合约所有者，无法进入审核面板。</p>
+            <p class="small">(只有合约部署者可以管理定稿NFT)</p>
+        </div>
+
+        <!-- 通用加载遮罩/状态 -->
+        <div class="global-status" id="globalStatus"></div>
+    </div>
+
+    <!-- 引入业务脚本 -->
+    <script src="owner-script.js"></script>
+</body>
+</html>

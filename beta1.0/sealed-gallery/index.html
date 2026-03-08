@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 已封印NFT · 永恒画廊 | PixelArtNFT</title>
+    <!-- 独立样式文件 -->
+    <link rel="stylesheet" href="sealed-gallery.css">
+    <!-- ethers.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="gallery-container">
+        <!-- 头部信息 -->
+        <header class="gallery-header">
+            <h1>🏛️ <span class="gradient-text">已封印NFT · 永恒画廊</span></h1>
+            <div class="chain-info">
+                <span class="badge">Jouleverse (3666)</span>
+                <span class="contract-address" id="contractAddress">0x78e87C...7FE2</span>
+                <button class="copy-btn" id="copyContractBtn" title="复制合约地址">📋</button>
+            </div>
+            <div class="stats-card">
+                <div class="stat-item">
+                    <span class="stat-label">🔒 已封印</span>
+                    <span class="stat-value" id="sealedCount">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📦 总供应量</span>
+                    <span class="stat-value" id="totalSupply">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">📄 当前页</span>
+                    <span class="stat-value" id="currentPageDisplay">1/100</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 连接状态/加载提示 -->
+        <div class="connection-bar" id="connectionBar">
+            <button class="btn-connect" id="connectBtn">🔌 连接钱包查看封印NFT</button>
+            <span class="wallet-info" id="walletInfo">未连接</span>
+        </div>
+
+        <!-- 主画廊网格 (每页100个) -->
+        <div class="gallery-grid" id="galleryGrid">
+            <!-- 由JavaScript动态生成 100个卡片 -->
+            <div class="loading-spinner">加载中...</div>
+        </div>
+
+        <!-- 分页控制器 (100页) -->
+        <div class="pagination-control" id="paginationControl">
+            <button class="page-nav" id="firstPageBtn" title="首页">⏮️</button>
+            <button class="page-nav" id="prevPageBtn">←</button>
+            
+            <div class="page-numbers" id="pageNumbers">
+                <!-- 动态生成页码按钮 (例如 1 2 3 ... 100) -->
+            </div>
+            
+            <button class="page-nav" id="nextPageBtn">→</button>
+            <button class="page-nav" id="lastPageBtn" title="末页">⏭️</button>
+        </div>
+
+        <!-- 底部快速跳转 -->
+        <div class="footer-jump">
+            <span>跳转到页</span>
+            <input type="number" id="jumpInput" min="1" max="100" value="1" placeholder="1-100">
+            <button class="jump-btn" id="jumpBtn">前往</button>
+            <span class="page-hint">共100页 · 每页100个NFT</span>
+        </div>
+    </div>
+
+    <!-- 业务脚本 -->
+    <script src="sealed-gallery.js"></script>
+</body>
+</html>
