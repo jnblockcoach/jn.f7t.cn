@@ -1,0 +1,443 @@
+/* ========== styles.css ========== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #ccd9f0;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+/* 核心：响应式容器 — 电脑用row，手机用column */
+.responsive-container {
+    width: 100%;
+    max-width: 1400px;
+    background: #ffffff;
+    border-radius: 40px 40px 32px 32px;
+    box-shadow: 0 25px 50px rgba(0, 20, 60, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    transition: all 0.2s;
+}
+
+@media screen and (max-width: 700px) {
+    .responsive-container {
+        flex-direction: column;
+        border-radius: 32px;
+        max-width: 480px;
+    }
+}
+
+.draw-panel {
+    flex: 2.2;
+    background: #f8faff;
+    padding: 22px 20px;
+    border-right: 1px solid #cfdff2;
+    min-width: 0;
+}
+
+@media screen and (max-width: 700px) {
+    .draw-panel {
+        border-right: none;
+        border-bottom: 1px solid #cfdff2;
+        padding: 18px 16px;
+    }
+}
+
+.base64-panel {
+    flex: 1.2;
+    background: #ffffff;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.btn {
+    background: #ffffff;
+    border: 1px solid #bac8e5;
+    border-radius: 40px;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #142c52;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: 0.1s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    -webkit-tap-highlight-color: transparent;
+}
+.btn:active { background: #e3ebfc; transform: scale(0.97); }
+.btn-primary {
+    background: #2b5fd9;
+    border-color: #1a3c9e;
+    color: white;
+    box-shadow: 0 6px 12px rgba(43,95,217,0.25);
+}
+.btn-primary:active { background: #1f4bb5; }
+.btn-active {
+    background: #2b5fd9;
+    color: white;
+    border-color: #1742a3;
+}
+.btn-small { padding: 8px 14px; font-size: 13px; }
+
+.tool-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.size-panel {
+    background: #ecf3fe;
+    border-radius: 50px;
+    padding: 12px 18px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    margin: 12px 0 14px;
+}
+.size-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.size-item label { font-weight: 600; color: #1e3c78; }
+.size-input {
+    width: 70px;
+    padding: 8px 10px;
+    border: 1px solid #a3bef0;
+    border-radius: 40px;
+    text-align: center;
+    background: #f0f5ff;
+    color: #333;
+}
+
+.color-area {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 8px 0 14px;
+}
+.color-swatch {
+    width: 52px;
+    height: 52px;
+    border-radius: 30px;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #9cb9f0;
+    background: #ff0000;
+    cursor: pointer;
+}
+.color-rgb {
+    background: #eaf2ff;
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.canvas-wrapper {
+    background: #b7cef0;
+    border-radius: 36px;
+    padding: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+    margin: 15px 0 8px;
+    border: 1px solid #8bacdf;
+    min-height: 250px;
+}
+#pixelCanvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: white;
+    border: 2px solid white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    touch-action: none;
+}
+
+.radio-group {
+    background: #f0f6ff;
+    border-radius: 40px;
+    padding: 10px 18px;
+    display: flex;
+    gap: 24px;
+    margin: 10px 0 16px;
+    border: 1px solid #c0d4f5;
+}
+.base64-text {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px;
+    border-radius: 24px;
+    border: 2px solid #c2d4f0;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: white;
+    resize: vertical;
+    margin: 12px 0;
+}
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.import-area {
+    background: #ecf2fd;
+    border-radius: 28px;
+    padding: 16px;
+    margin: 12px 0 8px;
+    border: 1px dashed #779ee0;
+}
+.file-label {
+    background: white;
+    padding: 12px 18px;
+    border-radius: 40px;
+    border: 1px solid #a1beee;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    font-weight: 500;
+    cursor: pointer;
+}
+#imageFile { display: none; }
+
+.flex-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.nft-mint-area {
+    background: #eaeefc;
+    border-radius: 28px;
+    padding: 18px;
+    margin-top: 18px;
+    border: 1px solid #95b3e6;
+}
+.nft-title {
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: #0c2b5e;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.nft-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 12px 0;
+}
+.nft-input {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 60px;
+    border: 1px solid #a1b5dd;
+    background: white;
+    font-size: 14px;
+}
+.network-badge {
+    background: #2b3e6b;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 40px;
+    font-size: 13px;
+    font-weight: 600;
+}
+.wallet-info {
+    background: #d7e4fd;
+    border-radius: 30px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    word-break: break-all;
+}
+.chain-hint {
+    font-size: 12px;
+    color: #2f54a0;
+    background: #dfeaff;
+    padding: 6px 15px;
+    border-radius: 30px;
+    margin-top: 8px;
+}
+.my-nfts-area {
+    margin-top: 15px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 15px;
+    border: 1px solid #c2d0f0;
+    max-height: 350px;
+    overflow-y: auto;
+}
+.nft-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: white;
+}
+.nft-item:last-child { margin-bottom: 0; }
+.nft-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    object-fit: cover;
+}
+.nft-item-info {
+    flex: 1;
+}
+.nft-item-id {
+    font-weight: 700;
+    color: #1e3c8a;
+    font-size: 14px;
+}
+.nft-burn-btn {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.nft-burn-btn:hover { background: #fecaca; }
+.nft-finalize-btn {
+    background: #f59e0b;
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 30px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.nft-finalize-btn:hover { background: #d97706; }
+.nft-load-btn {
+    background: #e0e7ff;
+    color: #1e3c8a;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.nft-load-btn:hover { background: #c7d2fe; }
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.status-draft { background: #e2e8f0; color: #475569; }
+.status-finalized { background: #f59e0b; color: white; }
+.status-sealed { background: #10b981; color: white; }
+
+/* ========== 画廊入口按钮样式 ========== */
+.gallery-entry {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #3c5e9c;
+    text-align: center;
+}
+
+.btn-gallery {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-gallery:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    background: linear-gradient(135deg, #5a6fe0 0%, #6a4390 100%);
+}
+
+.btn-gallery:active {
+    transform: translateY(0);
+}
+
+.btn-gallery i, .btn-gallery span {
+    font-style: normal;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .btn-gallery {
+        padding: 10px 20px;
+        font-size: 1rem;
+        max-width: 250px;
+    }
+}
+
+/* 添加一个脉冲动画效果 */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+    }
+}
+
+.btn-gallery.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* 画廊按钮容器 */
+.gallery-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 10px;
+    background: rgba(60, 94, 156, 0.1);
+    border-radius: 60px;
+    backdrop-filter: blur(10px);
+}

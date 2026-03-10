@@ -42,10 +42,6 @@ body {
     border-radius: 40px;
     font-size: 1rem;
     cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     border: 1px solid #3f6ad0;
     transition: 0.2s;
 }
@@ -76,7 +72,6 @@ body {
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 .tab-btn.active {
@@ -98,7 +93,7 @@ body {
 }
 
 .contract-address {
-    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-family: monospace;
     color: #b3ceff;
     font-size: 0.95rem;
 }
@@ -110,14 +105,7 @@ body {
     padding: 6px 16px;
     border-radius: 30px;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
     border: 1px solid #3f6ad0;
-    transition: 0.2s;
-}
-
-.copy-btn:hover, .connect-btn:hover {
-    background: #234db0;
 }
 
 .wallet-address {
@@ -152,14 +140,12 @@ body {
     color: #92abdf;
     font-size: 0.95rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .stat-value {
     font-size: 1.8rem;
     font-weight: 700;
     color: white;
-    text-shadow: 0 0 10px #2952b3;
 }
 
 /* 进度条 */
@@ -169,7 +155,6 @@ body {
     border-radius: 50px;
     padding: 15px 25px;
     border: 1px solid #314a78;
-    transition: opacity 0.3s ease;
 }
 
 .progress-info {
@@ -177,7 +162,6 @@ body {
     justify-content: space-between;
     margin-bottom: 10px;
     color: #b3ceff;
-    font-size: 0.95rem;
 }
 
 .progress-bar-bg {
@@ -193,7 +177,6 @@ body {
     background: linear-gradient(90deg, #4a90e2, #9c6ee7);
     border-radius: 10px;
     transition: width 0.3s ease;
-    box-shadow: 0 0 10px #4a90e2;
 }
 
 /* 视图切换 */
@@ -210,14 +193,11 @@ body {
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 15px;
 }
 
 .view-header h2 {
     color: #d6e5ff;
     font-size: 1.5rem;
-    font-weight: 500;
 }
 
 /* 画廊网格 */
@@ -233,7 +213,7 @@ body {
     min-height: 600px;
 }
 
-/* NFT卡片 */
+/* NFT卡片基础样式 */
 .nft-card {
     aspect-ratio: 1;
     border-radius: 10px;
@@ -267,9 +247,8 @@ body {
     padding: 3px 8px;
     border-radius: 20px;
     font-size: 0.7rem;
-    font-weight: 600;
     border: 1px solid rgba(255,255,255,0.2);
-    backdrop-filter: blur(2px);
+    z-index: 2;
 }
 
 .nft-card .status-icon {
@@ -280,8 +259,72 @@ body {
     background: rgba(0,0,0,0.5);
     padding: 3px 8px;
     border-radius: 20px;
-    backdrop-filter: blur(2px);
+    z-index: 2;
+}
+
+/* 所有者地址 */
+.nft-card .owner-address {
+    position: absolute;
+    bottom: 4px;
+    left: 6px;
+    background: rgba(0,0,0,0.7);
+    color: #b3ceff;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    font-family: monospace;
     border: 1px solid rgba(255,255,255,0.2);
+    z-index: 2;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.nft-card .owner-address:hover {
+    max-width: none;
+    background: rgba(0,0,0,0.9);
+    overflow: visible;
+    white-space: normal;
+    word-break: break-all;
+}
+
+/* 状态文字（居中显示） */
+.nft-card .status-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9rem;
+    color: #94a3b8;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 6px 12px;
+    border-radius: 30px;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* 各状态卡片样式 */
+.nft-card.status-sealed {
+    border-color: #10b981;
+}
+
+.nft-card.status-finalized {
+    border-color: #f59e0b;
+}
+
+.nft-card.status-draft {
+    border-color: #6b7280;
+}
+
+.nft-card.status-uncreated {
+    border-color: #2d3748;
+    background: #0f1a2f;
+}
+
+.nft-card.status-uncreated .status-text {
+    color: #4a5568;
+    background: transparent;
 }
 
 /* 卡片操作按钮 */
@@ -297,7 +340,7 @@ body {
     justify-content: center;
     opacity: 0;
     transition: opacity 0.2s;
-    backdrop-filter: blur(2px);
+    z-index: 10;
 }
 
 .nft-card:hover .card-actions {
@@ -311,15 +354,8 @@ body {
     padding: 8px 16px;
     border-radius: 30px;
     font-size: 0.9rem;
-    font-weight: 600;
     cursor: pointer;
     border: 1px solid #5f85d9;
-    transition: 0.2s;
-}
-
-.transfer-btn:hover {
-    background: #2a4da0;
-    transform: scale(1.05);
 }
 
 /* 分页控件 */
@@ -341,15 +377,8 @@ body {
     padding: 8px 16px;
     border-radius: 30px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: 0.2s;
     min-width: 45px;
     text-align: center;
-}
-
-.page-btn:hover:not(:disabled) {
-    background: #2d4080;
-    border-color: #5f85d9;
 }
 
 .page-btn:disabled {
@@ -361,7 +390,6 @@ body {
     background: #1e3c8a;
     border-color: #7a9cff;
     color: white;
-    font-weight: 600;
 }
 
 /* 跳转框 */
@@ -380,10 +408,6 @@ body {
     margin-right: auto;
 }
 
-.jump-box span {
-    color: #b3ceff;
-}
-
 .jump-box input {
     width: 80px;
     padding: 8px 12px;
@@ -392,7 +416,6 @@ body {
     background: #030c1f;
     color: white;
     text-align: center;
-    font-size: 1rem;
 }
 
 .jump-btn, .refresh-btn {
@@ -401,42 +424,30 @@ body {
     border: none;
     padding: 8px 24px;
     border-radius: 30px;
-    font-size: 0.95rem;
-    font-weight: 500;
     cursor: pointer;
     border: 1px solid #4e71c0;
-    transition: 0.2s;
-}
-
-.jump-btn:hover, .refresh-btn:hover {
-    background: #284680;
 }
 
 /* 提示信息 */
-.loading-spinner {
+.loading-spinner, .connect-prompt, .error-message {
     grid-column: 1 / -1;
     text-align: center;
     padding: 80px;
-    color: #7f9fdf;
     font-size: 1.2rem;
 }
 
-.connect-prompt {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 80px;
+.loading-spinner {
     color: #7f9fdf;
-    font-size: 1.2rem;
+}
+
+.connect-prompt {
+    color: #7f9fdf;
     background: rgba(15, 24, 41, 0.5);
     border-radius: 20px;
 }
 
 .error-message {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 80px;
     color: #ffa5a5;
-    font-size: 1.2rem;
     background: rgba(185, 28, 28, 0.1);
     border-radius: 20px;
     border: 1px solid #b91c1c;
@@ -445,9 +456,6 @@ body {
 .ellipsis {
     color: #6883b0;
     padding: 0 5px;
-    font-size: 1.1rem;
-    display: inline-flex;
-    align-items: center;
 }
 
 /* 转账弹窗 */
@@ -462,7 +470,6 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(5px);
 }
 
 .modal.show {
@@ -476,25 +483,21 @@ body {
     padding: 30px;
     max-width: 450px;
     width: 90%;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
 }
 
 .modal-content h3 {
     color: #d6e5ff;
-    font-size: 1.5rem;
     margin-bottom: 15px;
 }
 
 .modal-content p {
     color: #b3ceff;
-    font-size: 1rem;
     margin-bottom: 5px;
 }
 
 #transferTokenId {
     font-weight: 600;
     color: #ffd966;
-    font-size: 1.2rem;
 }
 
 .modal-content input {
@@ -505,14 +508,7 @@ body {
     border: 1px solid #375692;
     background: #030c1f;
     color: white;
-    font-size: 0.95rem;
     font-family: monospace;
-}
-
-.modal-content input:focus {
-    outline: none;
-    border-color: #5f85d9;
-    box-shadow: 0 0 10px #1e3c8a;
 }
 
 .modal-actions {
@@ -525,10 +521,8 @@ body {
     padding: 12px;
     border-radius: 30px;
     border: none;
-    font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.2s;
 }
 
 .cancel-btn {
@@ -537,20 +531,10 @@ body {
     border: 1px solid #4a5568;
 }
 
-.cancel-btn:hover {
-    background: #3f4a5f;
-}
-
 .confirm-btn {
     background: #1e3c8a;
     color: white;
     border: 1px solid #5f85d9;
-}
-
-.confirm-btn:hover {
-    background: #2a4da0;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px #1e3c8a;
 }
 
 /* 响应式调整 */
