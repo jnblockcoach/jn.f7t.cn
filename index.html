@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 关键 meta 解决中文显示问题 -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jouleverse工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', system-ui, sans-serif;
+            background: linear-gradient(145deg, #f6f9fc 0%, #e9f2f9 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        /* 主容器，保证 footer 在底部 */
+        .layout {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 2rem 1rem;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 头部区域 */
+        .hero {
+            text-align: center;
+            margin: 2rem 0 3rem 0;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .joule-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .joule-logo span {
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0b3b5c, #1976d2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        .joule-logo::before {
+            content: "⚙️";
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 6px rgba(0,50,80,0.15));
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #0a2a44;
+            margin-bottom: 0.75rem;
+            border-bottom: 3px solid rgba(25, 118, 210, 0.3);
+            display: inline-block;
+            padding-bottom: 0.25rem;
+        }
+
+        .subhead {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            max-width: 700px;
+            margin: 1rem auto 0;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            padding: 0.75rem 2rem;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+        /* 卡片式工具区 — 专门放置 button 的位置 (预留) */
+        .tool-section {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 48px 48px 32px 32px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 20px 40px -12px rgba(0, 40, 80, 0.25),
+                        0 0 0 1px rgba(255,255,255,0.6) inset;
+            border: 1px solid rgba(255,255,255,0.9);
+            margin: 2rem 0 3rem 0;
+            transition: all 0.2s ease;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #1a4d80;
+            margin-bottom: 1.8rem;
+            font-weight: 500;
+        }
+
+        .section-label span {
+            background: #1e4f7a;
+            color: white;
+            padding: 0.15rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+
+        /* 按钮网格 — 完全预留，可自由添加多个button */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 基础的预留按钮样式 — 方便识别且美观，你只管往里面加button */
+        .button-grid button {
+            background: white;
+            border: none;
+            padding: 1rem 2.2rem;
+            font-size: 1.2rem;
+            font-weight: 550;
+            color: #0a2f4d;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px -8px rgba(0, 50, 90, 0.25),
+                        0 0 0 1px rgba(25, 118, 210, 0.2);
+            transition: all 0.2s ease;
+            min-width: 180px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-family: inherit;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255,255,255,0.7);
+        }
+
+        /* 悬停效果增加交互感 */
+        .button-grid button:hover {
+            background: #f0f7ff;
+            transform: translateY(-3px);
+            box-shadow: 0 16px 24px -10px #0b3b5c4d;
+            border-color: rgba(25, 118, 210, 0.4);
+        }
+
+        .button-grid button:active {
+            transform: translateY(0);
+            transition: 0.05s;
+        }
+
+        /* 占位说明（仅用于预览，你可以移除或保留） */
+        .demo-hint {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.95rem;
+            color: #4d6278;
+            background: #e3eefb;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            display: inline-block;
+            align-self: center;
+            border: 1px dashed #1976d2;
+        }
+
+        .demo-hint i {
+            font-style: normal;
+            background: #1976d2;
+            color: white;
+            padding: 0.1rem 0.6rem;
+            border-radius: 20px;
+            margin: 0 4px;
+        }
+
+        /* 特性/补充信息 — 下方预留说明区域，不作为工具按钮 */
+        .info-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.5);
+            border-radius: 32px;
+            padding: 2rem;
+            margin-top: 1rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid white;
+        }
+
+        .info-card {
+            flex: 1 1 180px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #113355;
+            font-weight: 550;
+        }
+
+        .info-card p {
+            color: #2d4a6e;
+            font-size: 0.95rem;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #1976d2, transparent);
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        footer {
+            text-align: center;
+            color: #4f658d;
+            font-size: 0.9rem;
+            padding: 2rem 0 0.5rem;
+            border-top: 1px solid rgba(25, 118, 210, 0.2);
+            margin-top: 2rem;
+        }
+
+        footer a {
+            color: #0f4c81;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        /* 动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 自适应调整 */
+        @media (max-width: 600px) {
+            .layout {
+                padding: 1rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .button-grid button {
+                width: 100%;
+                max-width: 280px;
+            }
+            .subhead {
+                font-size: 1rem;
+                padding: 0.5rem 1rem;
+            }
+            .tool-section {
+                padding: 1.5rem 1rem;
+            }
+        }
+
+        /* 额外：button 区域预签名—你只管加按钮，样式自动适应 */
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- 头部区 符合标题 Jouleverse工具 -->
+        <div class="hero">
+            <div class="joule-logo">
+                <span>Jouleverse</span>
+            </div>
+            <h1>小工具</h1>
+            <div class="subhead">
+                ⚡ 快捷 · 安全 · Jouleverse工具集
+            </div>
+        </div>
+
+        <!-- 核心部分：button预留位置 (底下就是你需要的button区域) 
+             你可以在 .button-grid 内添加任意数量 button，样式统一美观 -->
+        <div class="tool-section">
+            <div class="section-label">
+                📌 工具启动台 <span>BUTTONS</span>
+            </div>
+            
+            <!-- 这里是完全预留的按钮容器，你现在看到的是示例按钮，可随意替换或增加 -->
+            <div class="button-grid">
+                <!-- 预置4个风格统一的button，完全占位，你可以修改文字、删除或加入新的button 
+                     注意保留 button 标签即可 -->
+                <button onclick="window.location.href='1.0alpha/base64_draw.html'">像素绘图版1.0alpha</button>
+                <button onclick="window.location.href='2.0alpha/base64_draw.html'">像素绘图版2.0alpha</button>
+                <button onclick="window.location.href='2.1alpha/base64_draw.html'">像素绘图版2.1alpha</button>
+                <button onclick="window.location.href='2.2beta/base64_draw.html'">像素绘图版2.2beta</button>
+                <button onclick="window.location.href='2.3/base64_draw.html'">像素绘图版2.3</button>
+                <button>...</button>
+                <button>...</button>
+                <!-- 已经预留了四个，但你可以在下面继续增加新的button，样式自动统一 -->
+                <!-- 例如增加一个： <button>跨链桥</button>  直接添加即可，无需额外样式 -->
+                <!-- 下面是额外的预留示例 (可删除) -->
+                <button>...</button>
+                <button>...</button>
+                <!-- 你可以继续添加 <button>xxx</button> 数量任意  -->
+            </div>
+
+        <!-- 分割线 -->
+        <hr>
+
+        <!-- footer 简单信息 -->
+        <footer>
+            <p>⚙️ Jouleverse工具主页</p>
+        </footer>
+    </div>
+
+    <!-- 附加说明：该html已包含meta charset=UTF-8，任何中文均正常显示 -->
+    <!-- 你可以放心添加任意button，样式会自动适应，且不会影响中文解码 -->
+</body>
+</html>
