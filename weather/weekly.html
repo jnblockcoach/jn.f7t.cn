@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>未来七天天气 - 北京</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .forecast-container {
+            display: none;
+        }
+
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .day-card {
+            background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 20px 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px);
+            border-color: #f5576c;
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.2);
+        }
+
+        .day-card.today {
+            background: linear-gradient(145deg, #fff5f5 0%, #ffe8e8 100%);
+            border-color: #f5576c;
+        }
+
+        .day-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .day-date {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .day-icon {
+            font-size: 48px;
+            margin: 10px 0;
+        }
+
+        .day-weather {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .day-temp {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .day-details {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .detail-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit fanciful, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .detail-icon {
+            font-size: 28px;
+            width: 40px;
+            text-align: center;
+        }
+
+        .detail-content {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #e74c3c;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .back-btn {
+            background: white;
+            color: #666;
+            border: 2px solid #eee;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: #f8f9fa;
+            border-color: #ddd;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            .weekly-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="location.href='../index.html'">← 返回</button>
+            <h1>📅 未来七天天气</h1>
+            <p>北京市</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+            正在获取天气数据...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="forecast-container" class="forecast-container">
+            <div id="weekly-grid" class="weekly-grid"></div>
+
+            <div class="detail-section">
+                <div class="detail-title">
+                    <span>📊</span>
+                    <span>七日统计</span>
+                </div>
+                <div id="detail-grid" class="detail-grid"></div>
+            </div>
+
+            <div style="text-align: center;">
+                <button class="refresh-btn" onclick="fetchWeather()">🔄 刷新天气</button>
+            </div>
+
+            <div id="last-updated" class="last-updated"></div>
+        </div>
+    </div>
+
+    <script>
+        const DAY_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+
+        function getWeatherInfo(code) {
+            const weatherCodes = {
+                0: { name: '晴', icon: '☀️' },
+                1: { name: '晴', icon: '☀️' },
+                2: { name: '多云', icon: '⛅' },
+                3: { name: '阴', icon: '☁️' },
+                45: { name: '雾', icon: '🌫️' },
+                48: { name: '雾', icon: '🌫️' },
+                51: { name: '小雨', icon: '🌦️' },
+                53: { name: '小雨', icon: '🌦️' },
+                55: { name: '小雨', icon: '🌦️' },
+                61: { name: '雨', icon: '🌟️' },
+                63: { name: '中雨', icon: '🌧️' },
+                65: { name: '大雨', icon: '🌧️' },
+                71: { name: '雪', icon: '❄️' },
+                73: { name: '中雪', icon: '❄️' },
+                75: { name: '大雪', icon: '❄️' },
+                80: { name: '小雨', icon: '🌦️' },
+                81: { name: '中雨', icon: '🌧️' },
+                82: { name: '大雨', icon: '🌧️' },
+                95: { name: '雷雨', icon: '⛈️' },
+                96: { name: '雷雨', icon: '⛈️' },
+                99: { name: '雷雨', icon: '⛈️' }
+            };
+            
+            return weatherCodes[code] || { name: '未知', icon: '❓' };
+        }
+
+        async function fetchWeather() {
+            showLoading();
+            
+            try {
+                const url = 'https://api.open-meteo.com/v1/forecast?latitude=39.9042&longitude=116.4074&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_probability_max,precipitation_sum,sunrise,sunset,wind_speed_10m_max&forecast_days=7&timezone=Asia%2FShanghai';
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('获取天气数据失败');
+                }
+                
+                const data = await response.json();
+                displayWeather(data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('forecast-container').style.display = 'none';
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 20px;">❌</div>
+                ${message}
+                <br><br>
+                <button class="refresh-btn" onclick="fetchWeather()">🔄 重试</button>
+            `;
+            document.getElementById('forecast-container').style.display = 'none';
+        }
+
+        function displayWeather(data) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            const forecastContainer = document.getElementById('forecast-container');
+            forecastContainer.style.display = 'block';
+            
+            const daily = data.daily;
+            const weeklyGrid = document.getElementById('weekly-grid');
+            weeklyGrid.innerHTML = '';
+            
+            const today = new Date().toDateString();
+            
+            daily.time.forEach((time, index) => {
+                const date = new Date(time);
+                const weatherInfo = getWeatherInfo(daily.weather_code[index]);
+                const isToday = date.toDateString() === today;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = `day-card ${isToday ? 'today' : ''}`;
+                dayCard.innerHTML = `
+                    <div class="day-name">${isToday ? '今天' : DAY_NAMES[date.getDay()]}</div>
+                    <div class="day-date">${date.getMonth() + 1}/${date.getDate()}</div>
+                    <div class="day-icon">${weatherInfo.icon}</div>
+                    <div class="day-weather">${weatherInfo.name}</div>
+                    <div class="day-temp">${Math.round(daily.temperature_2m_max[index])}°</div>
+                    <div class="day-details">
+                        ${Math.round(daily.temperature_2m_min[index])}° / UV ${daily.uv_index_max[index]}
+                    </div>
+                `;
+                weeklyGrid.appendChild(dayCard);
+            });
+            
+            // Detail statistics
+            const detailGrid = document.getElementById('detail-grid');
+            detailGrid.innerHTML = '';
+            
+            // Calculate statistics
+            const maxTempAll = Math.max(...daily.temperature_2m_max);
+            const minTempAll = Math.min(...daily.temperature_2m_min);
+            const avgMaxTemp = Math.round(daily.temperature_2m_max.reduce((a, b) => a + b) / daily.temperature_2m_max.length);
+            const avgMinTemp = Math.round(daily.temperature_2m_min.reduce((a, b) => a + b) / daily.temperature_2m_min.length);
+            const maxUV = Math.max(...daily.uv_index_max);
+            const avgPrecipProb = Math.round(daily.precipitation_probability_max.reduce((a, b) => a + b) / daily.precipitation_probability_max.length);
+            const totalPrecip = daily.precipitation_sum.reduce((a, b) => a + b, 0);
+            const maxWind = Math.round(Math.max(...daily.wind_speed_10m_max));
+            
+            const details = [
+                { icon: '🌡️', label: '最高温度', value: `${maxTempAll}°C` },
+                { icon: '❄️', label: '最低温度', value: `${minTempAll}°C` },
+                { icon: '📊', label: '平均高温', value: `${avgMaxTemp}°C` },
+                { icon: '📉', label: '平均低温', value: `${avgMinTemp}°C` },
+                { icon: '☀️', label: '最大紫外线', value: maxUV },
+                { icon: '🌧️', label: '平均降水概率', value: `${avgPrecipProb}%` },
+                { icon: '💧', label: '七日总降水量', value: `${totalPrecip.toFixed(1)}mm` },
+                { icon: '💨', label: '最大风速', value: `${maxWind} km/h` }
+            ];
+            
+            details.forEach(detail => {
+                const detailItem = document.createElement('div');
+                detailItem.className = 'detail-item';
+                detailItem.innerHTML = `
+                    <div class="detail-icon">${detail.icon}</div>
+                    <div class="detail-content">
+                        <div class="detail-label">${detail.label}</div>
+                        <div class="detail-value">${detail.value}</div>
+                    </div>
+                `;
+                detailGrid.appendChild(detailItem);
+            });
+            
+            // Last updated
+            const updateTime = new Date().toLocaleString('zh-CN', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            document.getElementById('last-updated').textContent = `最后更新: ${updateTime}`;
+        }
+
+        // Auto fetch on page load
+        window.addEventListener('DOMContentLoaded', fetchWeather);
+        
+        // Auto refresh every 30 minutes
+        setInterval(fetchWeather, 30 * 60 * 1000);
+    </script>
+</body>
+</html>

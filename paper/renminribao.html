@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人民日报 - 今日新闻</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #dcdc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .toolbar {
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #eee;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: white;
+            color: #dc2626;
+            border: 2px solid #dc2626;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toolbar-btn:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .content-area {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #f8f9fa;
+            border-right: 2px solid #eee;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-item {
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .sidebar-item:hover {
+            background: white;
+            color: #dc2626;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-item.active {
+            background: #dc2626;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .quick-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 30px;
+        }
+
+        .quick-link-card {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-link-card:hover {
+            border-color: #dc2626;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .quick-link-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .quick-link-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 0 30px 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #dc2626;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #991b1b;
+        }
+
+        .info-box {
+            padding: 30px;
+            text-align: center;
+            color: #666;
+        }
+
+        .info-box p {
+            margin-bottom: 10px;
+        }
+
+        .info-note {
+            font-size: 12px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .content-area {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .header {
+                padding: 20px;
+            }
+            .back-btn {
+                position: relative;
+                margin-bottom: 10px;
+                left: 0;
+                top: 0;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="location.href='../index.html'">← 返回</button>
+            <h1>📰 人民日报</h1>
+            <p>中共中央机关报 · 权威媒体</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="toolbar-btn" onclick="showQuickLinks()">🏠 首页导航</button>
+            <button class="toolbar-btn" onclick="openUrl('http://cpc.people.com.cn/')">🔴 要闻</button>
+            <button class="toolbar-btn" onclick="openUrl('http://finance.people.com.cn/')">💰 经济</button>
+            <button class="toolbar-btn" onclick="openUrl('http://world.people.com.cn/')">🌍 国际</button>
+            <button class="toolbar-btn" onclick="openUrl('http://opinion.people.com.cn/')">💬 评论</button>
+        </div>
+
+        <div class="content-area">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <div class="sidebar-title">要闻</div>
+                    <div class="sidebar-item" onclick="openUrl('http://cpc.people.com.cn/')">要闻头条</div>
+                    <div class="sidebar-item" onclick="openUrl('http://politics.people.com.cn/')">时政新闻</div>
+                    <div class="sidebar-item" onclick="openUrl('http://renshi.people.com.cn/')">人事任免</div>
+                    <div class="sidebar-item" onclick="openUrl('http://dangshi.people.com.cn/')">党史</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">新闻版块</div>
+                    <div class="sidebar-item" onclick="openUrl('http://finance.people.com.cn/')">经济·科技</div>
+                    <div class="sidebar-item" onclick="openUrl('http://society.people.com.cn/')">社会·法治</div>
+                    <div class="sidebar-item" onclick="openUrl('http://ent.people.com.cn/')">文体·体育</div>
+                    <div class="sidebar-item" onclick="openUrl('http://health.people.com.cn/')">健康·生活</div>
+                    <div class="sidebar-item" onclick="openUrl('http://world.people.com.cn/')">国际</div>
+                    <div class="sidebar-item" onclick="openUrl('http://military.people.com.cn/')">军事</div>
+                    <div class="sidebar-item" onclick="openUrl('http://edu.people.com.cn/')">教育</div>
+                    <div class="sidebar-item" onclick="openUrl('http://env.people.com.cn/')">环保</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">评论专栏</div>
+                    <div class="sidebar-item" onclick="openUrl('http://opinion.people.com.cn/')">人民锐评</div>
+                    <div class="sidebar-item" onclick="openUrl('http://opinion.people.com.cn/GB/8213/49160/49179/index.html')">社论</div>
+                    <div class="sidebar-item" onclick="openUrl('http://opinion.people.com.cn/GB/8213/49160/49221/index.html')">今日谈</div>
+                    <div class="sidebar-item" onclick="openUrl('http://bbs1.people.com.cn/')">强国论坛</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">视频图片</div>
+                    <div class="sidebar-item" onclick="openUrl('http://v.people.cn/')">人民视频</div>
+                    <div class="sidebar-item" onclick="openUrl('http://pic.people.com.cn/')">人民图片</div>
+                    <div class="sidebar-item" onclick="openUrl('http://graphicnews.people.com.cn/')">图解新闻</div>
+                </div>
+
+                <div class="sidebar-section">
+                    <div class="sidebar-title">地方频道</div>
+                    <div class="sidebar-item" onclick="openUrl('http://bj.people.com.cn/')">北京</div>
+                    <div class="sidebar-item" onclick="openUrl('http://sh.people.com.cn/')">上海</div>
+                    <div class="sidebar-item" onclick="openUrl('http://gd.people.com.cn/')">广东</div>
+                    <div class="sidebar-item" onclick="openUrl('http://zj.people.com.cn/')">浙江</div>
+                    <div class="sidebar-item" onclick="openUrl('http://js.people.com.cn/')">江苏</div>
+                    <div class="sidebar-item" onclick="openUrl('http://sd.people.com.cn/')">山东</div>
+                </div>
+            </div>
+
+            <div class="main-content" id="main-content">
+                <div id="quick-links-content" style="overflow-y: auto; height: 100%;">
+                    <div class="quick-links">
+                        <div class="quick-link-card" onclick="openUrl('http://www.people.com.cn/')">
+                            <div class="quick-link-icon">🏠</div>
+                            <div class="quick-link-title">人民网首页</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://paper.people.com.cn/rmrb/')">
+                            <div class="quick-link-icon">📄</div>
+                            <div class="quick-link-title">人民日报电子版</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://cpc.people.com.cn/')">
+                            <div class="quick-link-icon">🔴</div>
+                            <div class="quick-link-title">要闻头条</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://finance.people.com.cn/')">
+                            <div class="quick-link-icon">💰</div>
+                            <div class="quick-link-title">经济新闻</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://world.people.com.cn/')">
+                            <div class="quick-link-icon">🌍</div>
+                            <div class="quick-link-title">国际新闻</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://opinion.people.com.cn/')">
+                            <div class="quick-link-icon">💬</div>
+                            <div class="quick-link-title">人民锐评</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://v.people.cn/')">
+                            <div class="quick-link-icon">🎬</div>
+                            <div class="quick-link-title">人民视频</div>
+                        </div>
+                        <div class="quick-link-card" onclick="openUrl('http://pic.people.com.cn/')">
+                            <div class="quick-link-icon">📷</div>
+                            <div class="quick-link-title">人民图片</div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number">30+</div>
+                            <div class="stat-label">新闻版块</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">34</div>
+                            <div class="stat-label">地方频道</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">10</div>
+                            <div class="stat-label">语种版本</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">24h</div>
+                            <div class="stat-label">全天更新</div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p>📌 点击上方卡片或左侧菜单访问人民日报各版块</p>
+                        <p class="info-note">由于浏览器安全策略，页面将在新窗口打开</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openUrl(url) {
+            window.open(url, '_blank');
+        }
+
+        function showQuickLinks() {
+            // 快速导航默认显示，无需切换
+        }
+    </script>
+</body>
+</html>
